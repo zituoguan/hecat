@@ -101,7 +101,7 @@ def check_description_syntax(software, errors):
         assert software['description'].endswith('.')
     except AssertionError:
         message = ("{}: description does not end with a dot").format(software['name'])
-        log_exception(message, errors, severity=logging.warning)
+        log_exception(message, errors)
 
 def check_attribute_in_list(item, attribute_name, key, attributes_list, errors):
     """check that all licenses/tags/platforms/related_tags for a software/tag item are listed in the main licenses/tags/platforms list.
