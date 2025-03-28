@@ -405,7 +405,7 @@ def render_markdown_multipage(step):
     for platform in platforms:
         render_item_page(step, 'platform', platform, software_list)
     logging.info('正在渲染软件页面')
-    for software in software_lis:
+    for software in software_list:
         render_item_page(step, 'software', software, software_list)
     try:
         os.mkdir(step['module_options']['output_directory'] + '/_static')
