@@ -183,7 +183,7 @@ MARKDOWN_INDEX_CONTENT_HEADER="""
 SOFTWARE_JINJA_MARKDOWN="""
 --------------------
 
-### [{{ software['name'] }}]({{ to_kebab_case(software['name']) }}.md)
+### {{ software['name'] }}
 
 {{ software['description'] }}
 
