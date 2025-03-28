@@ -1,42 +1,41 @@
-"""import data from the awesome-selfhosted markdown format
+"""从 awesome-selfhosted markdown 格式导入数据
 - https://gitlab.com/nodiscc/toolbox/-/raw/master/DOC/SCREENSHOTS/E4ra3V8.png
 
 # hecat.yml
 steps:
-  - name: import
+  - name: 导入
     module: importers/markdown_awesome
     module_options:
       source_file: tests/awesome-selfhosted/README.md
       output_directory: tests/awesome-selfhosted-data
-      output_licenses_file: licenses.yml # optional, default licenses.yml
-      overwrite_tags: False # optional, default False
+      output_licenses_file: licenses.yml # 可选，默认 licenses.yml
+      overwrite_tags: False # 可选，默认 False
 
-Source directory structure:
+源目录结构：
 └── README.md
 
-Output directory structure:
+输出目录结构：
 ├── software
-│   ├── mysoftware.yml # .yml files containing software data
+│   ├── mysoftware.yml # 包含软件数据的 .yml 文件
 │   ├── someothersoftware.yml
 │   └── ...
 ├── platforms
-│   ├── bash.yml # .yml files containing language/platforms data
+│   ├── bash.yml # 包含语言/平台数据的 .yml 文件
 │   ├── python.yml
 │   └── ...
 ├── tags
-│   ├── groupware.yml # .yml files containing tags/categories data
+│   ├── groupware.yml # 包含标签/类别数据的 .yml 文件
 │   ├── enterprise-resource-planning.yml
 │   └── ...
-└── licenses.yml # yaml list of licenses
+└── licenses.yml # 许可证的 yaml 列表
 
-In addition to the list item format
-(https://github.com/awesome-selfhosted/awesome-selfhosted/blob/master/.github/PULL_REQUEST_TEMPLATE.md),
-the importer assumes a few things about the original markdown file:
-- all level 3 (`###`) titles/sections contain the actual list data/items, other sections must use level 2 headings
-- the list of licenses is available in a `## List of Licenses` section
+除了列表项格式
+(https://github.com/awesome-selfhosted/awesome-selfhosted/blob/master/.github/PULL_REQUEST_TEMPLATE.md)，
+导入器对原始 markdown 文件有一些假设：
+- 所有三级（`###`）标题/部分包含实际的列表数据/项，其他部分必须使用二级标题
+- 许可证列表在 `## List of Licenses` 部分中提供
 
-The output format for software/platforms/tags is described in exporters/markdown_singlepage.py
-
+软件/平台/标签的输出格式在 exporters/markdown_singlepage.py 中描述
 """
 
 import os
@@ -51,9 +50,9 @@ yaml.indent(sequence=4, offset=2)
 yaml.width = 99999
 
 def load_markdown_list_sections(source_file):
-    """return original markdown list sections, as a list of dicts:
-       title: section title
-       text: full section text
+    """返回原始 markdown 列表部分，作为字典列表：
+       title: 部分标题
+       text: 完整部分文本
     """
     with open(source_file, 'r', encoding="utf-8") as src_file:
         src = src_file.read()
@@ -61,17 +60,17 @@ def load_markdown_list_sections(source_file):
         for section in src.split('### '):
             title = section.partition('\n')[0]
             sections.append({ 'title': title, 'text': section })
-        # remove everything before first ###
+        # 移除第一个 ### 之前的所有内容
         sections.pop(0)
-        # only keep the part above ## (beginning of next level 2 section) from the last section
+        # 只保留最后一个部分中 ##（下一个二级部分的开始）之前的内容
         sections[-1]['text'] = sections[-1]['text'].split('## ')[0]
     return sections
 
 def import_software(section, step, errors):
-    """import all list items from a markdown section/category, to software yaml definitions/files"""
+    """从 markdown 部分/类别中导入所有列表项到软件 yaml 定义/文件"""
     entries = re.findall("^- .*", section['text'], re.MULTILINE)
     for line in entries:
-        logging.debug('importing software from line: %s', line)
+        logging.debug('从行导入软件: %s', line)
         matches = re.match(r"\- \[(?P<name>.*)\]\((?P<website_url>[^\)]+)\) (?P<depends_3rdparty>`⚠` )?- (?P<description>.*\.) ((?P<links>.*)\)\) )?`(?P<license>.*)` `(?P<language>.*)`", line) # pylint: disable=line-too-long
         entry = {}
         try:
@@ -82,7 +81,7 @@ def import_software(section, step, errors):
             entry['platforms'] = matches.group('language').split('/')
             entry['tags'] = [section['title']]
         except AttributeError:
-            error_msg = 'Missing required field in entry: {}'.format(line)
+            error_msg = '条目中缺少必填字段: {}'.format(line)
             logging.error(error_msg)
             errors.append(error_msg)
             continue
@@ -107,19 +106,19 @@ def import_software(section, step, errors):
             step['module_options']['output_directory'] + '/software',
             to_kebab_case(matches.group('name')) + '.yml')
         if os.path.exists(dest_file):
-            logging.debug('overwriting target file %s', dest_file)
+            logging.debug('覆盖目标文件 %s', dest_file)
         while True:
             try:
                 with open(dest_file, 'w+', encoding="utf-8") as yaml_file:
-                    logging.debug('section %s: writing file %s', section['title'], dest_file)
+                    logging.debug('部分 %s: 写入文件 %s', section['title'], dest_file)
                     yaml.dump(entry, yaml_file)
                     break
             except FileNotFoundError:
                 os.mkdir(step['module_options']['output_directory'] + '/software')
 
-# DEBT factorize extract_external_links, extract_related_tags, extract_redirect
+# DEBT 提取外部链接、相关标签、重定向的因子化
 def extract_related_tags(section):
-    """Extract 'Related:' tags from markdown section"""
+    """从 markdown 部分提取 'Related:' 标签"""
     related_tags = []
     related_markdown = re.findall("^_Related:.*_", section['text'], re.MULTILINE)
     if related_markdown:
@@ -129,7 +128,7 @@ def extract_related_tags(section):
     return related_tags
 
 def extract_redirect(section):
-    """extract 'Please visit' link titles/URLs from markdown"""
+    """从 markdown 中提取 'Please visit' 链接标题/URL"""
     redirect = []
     redirect_markdown = re.findall(r'^\*\*Please visit.*\*\*', section['text'], re.MULTILINE)
     if redirect_markdown:
@@ -139,7 +138,7 @@ def extract_redirect(section):
     return redirect
 
 def extract_external_links(section):
-    """Extract 'See also:' links titles/URLs from markdown section"""
+    """从 markdown 部分提取 'See also:' 链接标题/URL"""
     external_links = []
     external_links_markdown = re.findall("^_See also.*_", section['text'], re.MULTILINE)
     if external_links_markdown:
@@ -149,30 +148,30 @@ def extract_external_links(section):
     return external_links
 
 def extract_description(section):
-    """Extract section description from a markdown section"""
+    """从 markdown 部分提取部分描述"""
     description = ''
     description_markdown = re.findall(r'^(?![#\*_\-\n]).*', section['text'], re.MULTILINE)
     if description_markdown:
         if len(description_markdown) in [1, 2]:
-            logging.warning("%s has no description", section['title'])
+            logging.warning("%s 没有描述", section['title'])
         if len(description_markdown) == 3:
             description = description_markdown[1]
         else:
-            logging.warning("%s has more than one description line. Only the first line will be kept", section['title'])
+            logging.warning("%s 有超过一行描述。只保留第一行", section['title'])
             description = description_markdown[1]
     return description
 
 def import_tag(section, step):
-    """create a tag/category yaml file given a source markdown section/category"""
+    """根据源 markdown 部分/类别创建标签/类别 yaml 文件"""
     if 'overwrite_tags' not in step['module_options']:
         step['module_options']['overwrite_tags'] = False
     dest_file = '{}/{}'.format(
         step['module_options']['output_directory'] + '/tags', to_kebab_case(section['title']) + '.yml')
     if os.path.exists(dest_file):
         if not step['module_options']['overwrite_tags']:
-            logging.debug('file %s already exists, not overwriting it', dest_file)
+            logging.debug('文件 %s 已存在，不覆盖', dest_file)
             return
-        logging.debug('overwriting tag in %s', dest_file)
+        logging.debug('覆盖标签在 %s', dest_file)
     related_tags = extract_related_tags(section)
     redirect = extract_redirect(section)
     description = extract_description(section)
@@ -180,7 +179,7 @@ def import_tag(section, step):
     while True:
         try:
             with open(dest_file, 'w+', encoding="utf-8") as yaml_file:
-                logging.debug('section %s: writing file %s', section['title'], dest_file)
+                logging.debug('部分 %s: 写入文件 %s', section['title'], dest_file)
                 output_dict = {
                     'name': section['title'],
                     'description': description,
@@ -197,8 +196,8 @@ def import_tag(section, step):
             os.mkdir(step['module_options']['output_directory'] + '/tags')
 
 def import_platforms(yaml_software_files, step):
-    """builds a list of language/platforms from all software/YAML files,
-    creates corresponding platform/*.yml files"""
+    """从所有软件/YAML 文件构建语言/平台列表，
+    创建相应的 platform/*.yml 文件"""
     platforms = []
     for file in yaml_software_files:
         with open(step['module_options']['output_directory'] + '/software/' + file, 'r', encoding="utf-8") as file:
@@ -209,13 +208,13 @@ def import_platforms(yaml_software_files, step):
         dest_file = '{}/{}'.format(
             step['module_options']['output_directory'] + '/platforms', to_kebab_case(platform) + '.yml')
         if os.path.exists(dest_file):
-            logging.debug('overwriting target file %s', dest_file)
+            logging.debug('覆盖目标文件 %s', dest_file)
         with open(dest_file, 'w+', encoding="utf-8") as yaml_file:
-            logging.debug('writing file %s', dest_file)
+            logging.debug('写入文件 %s', dest_file)
             yaml_file.write('name: {}\ndescription: ""'.format(platform))
 
 def import_licenses(step):
-    """builds a YAML list of licenses from the List of Licenses section of a markdown file"""
+    """从 markdown 文件的 List of Licenses 部分构建 YAML 许可证列表"""
     yaml_licenses = ''
     with open(step['module_options']['source_file'], 'r', encoding="utf-8") as markdown:
         data = markdown.read()
@@ -233,12 +232,12 @@ def import_licenses(step):
         step['module_options']['output_licenses_file'] = 'licenses.yml'
     dest_file = step['module_options']['output_directory'] + '/' + step['module_options']['output_licenses_file']
     with open(dest_file, 'w+', encoding="utf-8") as yaml_file:
-        logging.debug('writing file %s', dest_file)
+        logging.debug('写入文件 %s', dest_file)
         yaml_file.write(yaml_licenses)
 
 def import_markdown_awesome(step):
-    """Import data from an "awesome"-formatted markdown list
-    Original list sections must be level 3 titles (###)
+    """从“awesome”格式的 markdown 列表导入数据
+    原始列表部分必须是三级标题（###）
     """
     errors = []
     sections = load_markdown_list_sections(step['module_options']['source_file'])
@@ -246,8 +245,9 @@ def import_markdown_awesome(step):
         import_software(section, step, errors)
         import_tag(section, step)
     if errors:
-        logging.error("There were errors during processing")
+        logging.error("处理过程中出现错误")
         sys.exit(1)
     yaml_software_files = list_files(step['module_options']['output_directory'] + '/software')
     import_platforms(yaml_software_files, step)
     import_licenses(step)
+    
