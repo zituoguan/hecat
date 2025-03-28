@@ -22,7 +22,13 @@ def to_kebab_case(string):
         '&': '',
         '/': '',
         ',': '',
-        '*': ''
+        '*': '',
+        '\\': '',
+        '<': '',
+        '>': '',
+        '|': '',
+        '?': '',
+        '"': '',
     }
     newstring = string.translate(str.maketrans(replacements)).lower()
     return newstring
@@ -53,7 +59,7 @@ def load_yaml_data(path, sort_key=False):
         return data
     else:
         logging.error('%s is not a file or directory', path)
-        exit(1)
+        sys.exit(1)
 
 def load_config(config_file):
     """load steps/settings from a configuration file"""
@@ -61,7 +67,7 @@ def load_config(config_file):
     logging.debug('loading configuration from %s', config_file)
     if not os.path.isfile(config_file):
         logging.error('configuration file %s does not exist')
-        exit(1)
+        sys.exit(1)
     with open(config_file, 'r', encoding="utf-8") as cfg:
         config = yaml.load(cfg)
     return config

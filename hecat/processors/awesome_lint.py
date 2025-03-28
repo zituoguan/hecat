@@ -40,11 +40,12 @@ source_directory: path to directory where data can be found. Directory structure
 └── licenses-nonfree.yml # yaml list of licenses
 """
 
+import os
 import re
 import logging
 import sys
 from datetime import datetime, timedelta
-from ..utils import load_yaml_data
+from ..utils import load_yaml_data, to_kebab_case
 
 SOFTWARE_REQUIRED_FIELDS = ['description', 'website_url', 'source_code_url', 'licenses', 'tags']
 SOFTWARE_REQUIRED_LISTS = ['licenses', 'tags']
@@ -127,10 +128,10 @@ def check_tag_has_at_least_items(tag, software_list, tags_with_redirect, errors,
             tag_items_count += 1
     try:
         assert tag_items_count >= min_items
-        logging.debug('{} items tagged {}'.format(tag_items_count, tag['name']))
+        logging.debug('%s items tagged %s', tag_items_count, tag['name'])
     except AssertionError:
         if tag['name'] in tags_with_redirect and tag_items_count == 0:
-            logging.debug('0 items tagged {}, but this tag has the redirect attribute set'.format(tag['name']))
+            logging.debug('0 items tagged %s, but this tag has the redirect attribute set', tag['name'])
         else:
             message = "{} items tagged {}, each tag must have at least {} items attached".format(tag_items_count, tag['name'], min_items)
             log_exception(message, errors)
@@ -177,7 +178,7 @@ def check_last_updated(software, step, errors):
         last_update_time = datetime.strptime(software['updated_at'], "%Y-%m-%d")
         time_since_last_update = last_update_time - datetime.now()
         if software['source_code_url'] in step['module_options']['last_updated_skip']:
-           logging.info('%s: skipping last update time check as per configuration (last_updated_skip) (%s)', software['name'], time_since_last_update)
+            logging.info('%s: skipping last update time check as per configuration (last_updated_skip) (%s)', software['name'], time_since_last_update)
         elif last_update_time < datetime.now() - timedelta(days=step['module_options']['last_updated_error_days']):
             message = '{}: last updated {} ago, older than {} days'.format(software['name'], time_since_last_update, step['module_options']['last_updated_error_days'])
             log_exception(message, errors, severity=logging.error)
@@ -194,6 +195,12 @@ def check_boolean_attributes(software, errors):
         if not type(software['depends_3rdparty']) == bool:
             message = '{}: depends_3rdparty must be a valid boolean value (true/false/True/False), got "{}"'.format(software['name'], software['depends_3rdparty'])
             log_exception(message, errors, severity=logging.error)
+
+def check_filename_is_kebab_case_software_name(filename, single_yaml_data, errors):
+    """check if the filename of a yaml match the kebab-case version of the name attribute inside that file"""
+    if not filename == to_kebab_case(single_yaml_data['name']) + '.yml':
+        message = '{}: file should be named {}'.format(filename, to_kebab_case(single_yaml_data['name'] + '.yml'))
+        log_exception(message, errors, severity=logging.error)
 
 def awesome_lint(step):
     """check all software entries against formatting guidelines"""
@@ -240,6 +247,10 @@ def awesome_lint(step):
         check_boolean_attributes(software, errors)
     for license in licenses_list:
         check_required_fields(license, errors, required_fields=LICENSES_REQUIRED_FIELDS)
+    for (root, dirs, files) in os.walk(step['module_options']['source_directory'] + '/software'):
+        for filename in files:
+            single_yaml_data = load_yaml_data(os.path.join(root, filename))
+            check_filename_is_kebab_case_software_name(filename, single_yaml_data, errors)
     if errors:
         logging.error("There were errors during processing")
         sys.exit(1)

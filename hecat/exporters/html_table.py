@@ -19,12 +19,11 @@ Output directory structure:
 """
 
 import sys
-import os
 import logging
-from jinja2 import Template
-from ..utils import load_yaml_data
 from datetime import datetime
+from jinja2 import Template
 import markdown
+from ..utils import load_yaml_data
 
 HTML_JINJA = """
 <html>
@@ -185,11 +184,12 @@ function myFunctionTag() {
 """
 
 def jinja_markdown(text):
-  """wrapper for using the markdown library from inside the jinja2 template"""
-  return markdown.markdown(text, extensions=['fenced_code', 'pymdownx.magiclink'])
+    """wrapper for using the markdown library from inside the jinja2 template"""
+    return markdown.markdown(text, extensions=['fenced_code', 'pymdownx.magiclink'])
 
 def simple_datetime(date):
-  return datetime.strftime(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z"), "%Y-%m-%d %H:%M:%S")
+    """format dates as YYYY-mm-dd HH:MM:SS"""
+    return datetime.strftime(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z"), "%Y-%m-%d %H:%M:%S")
 
 def render_html_table(step):
     """render the list data as a HTML table"""
