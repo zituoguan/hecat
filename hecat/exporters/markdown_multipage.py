@@ -184,7 +184,6 @@ SOFTWARE_JINJA_MARKDOWN="""
 --------------------
 
 ### {{ software['name'] }}
-### {{ software['name'] }}
 
 {{ software['description'] }}
 
