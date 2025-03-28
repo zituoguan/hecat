@@ -184,6 +184,7 @@ SOFTWARE_JINJA_MARKDOWN="""
 --------------------
 
 ### {{ software['name'] }}
+### {{ software['name'] }}
 
 {{ software['description'] }}
 
@@ -252,18 +253,6 @@ MARKDOWN_PLATFORMPAGE_CONTENT_HEADER="""
 此页面列出了使用此编程语言或部署平台的所有项目。仅考虑主要的服务器端需求、打包或分发格式。
 
 """
-SOFTWARE_HEADER_JINJA_MARKDOWN="""
-
-# 软件信息
-
-"""
-
-MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER="""
---------------------
-
-此页面列出了该软件的所有信息。包括名称、描述、网站链接、源代码链接、演示链接、星标数量、更新日期、编程语言/运行平台/运行环境/操作系统/硬件平台、许可证、标签等。
-
-"""
 
 def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', licenses_relative_url='#list-of-licenses'):
     """将软件项目信息渲染为 Markdown 列表项"""
@@ -292,8 +281,8 @@ def render_item_page(step, item_type, item, software_list):
     """
     为标签或平台渲染页面。
     :param dict step: 步骤配置
-    :param str item_type: 要渲染的页面类型（标签或平台或软件）
-    :param dict item: 要渲染的项（标签或平台或软件对象）
+    :param str item_type: 要渲染的页面类型（标签或平台）
+    :param dict item: 要渲染的项（标签或平台对象）
     :param list software_list: 完整的软件列表（字典列表）
     """
     logging.debug('正在渲染 %s %s 的页面', item_type, item['name'])
@@ -313,16 +302,8 @@ def render_item_page(step, item_type, item, software_list):
         tags_relative_url = '../tags/'
         platforms_relative_url = './'
         output_dir = step['module_options']['output_directory'] + '/md/platforms/'
-    elif item_type == 'software':
-        markdown_fieldlist = ''
-        header_template = Template(SOFTWARE_HEADER_JINJA_MARKDOWN)
-        content_header = MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER
-        match_key = 'name'
-        tags_relative_url = '../tags/'
-        platforms_relative_url = '../platforms/'
-        output_dir = step['module_options']['output_directory'] + '/md/softwares/'
     else:
-        logging.error('facte_type 的值无效，必须是 tag 或 platform 或 software')
+        logging.error('facte_type 的值无效，必须是 tag 或 platform')
         sys.exit(1)
     header_template.globals['to_kebab_case'] = to_kebab_case
     markdown_page_header = header_template.render(item=item)
@@ -390,7 +371,7 @@ def render_markdown_multipage(step):
                                         markdown_licenses,
                                         markdown_footer)
     output_file_name = step['module_options']['output_directory'] + '/md/' + step['module_options']['output_file']
-    for directory in ['/md/', '/md/tags/', '/md/platforms/', '/md/softwares/']:
+    for directory in ['/md/', '/md/tags/', '/md/platforms/']:
         try:
             os.mkdir(step['module_options']['output_directory'] + directory)
         except FileExistsError:
@@ -404,9 +385,6 @@ def render_markdown_multipage(step):
     logging.info('正在渲染平台页面')
     for platform in platforms:
         render_item_page(step, 'platform', platform, software_list)
-    logging.info('正在渲染软件页面')
-    for software in software_list:
-        render_item_page(step, 'software', software, software_list)
     try:
         os.mkdir(step['module_options']['output_directory'] + '/_static')
     except FileExistsError:
