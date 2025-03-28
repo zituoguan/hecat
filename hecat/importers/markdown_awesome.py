@@ -218,7 +218,7 @@ def import_licenses(step):
     yaml_licenses = ''
     with open(step['module_options']['source_file'], 'r', encoding="utf-8") as markdown:
         data = markdown.read()
-        licenses_section = data.split('## List of Licenses')[1].split('## ')[0]
+        licenses_section = data.split('## 许可证清单')[1].split('## ')[0]
         entries = re.findall("^- .*", licenses_section, re.MULTILINE)
         # pylint: disable=line-too-long
         for line in entries:

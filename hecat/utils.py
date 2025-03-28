@@ -77,7 +77,7 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
     if back_to_top_url is not None:
         markdown_licenses = '--------------------\n\n## List of Licenses\n\n**[`^        back to top        ^`](' + back_to_top_url + ')**\n\n'
     else:
-        markdown_licenses = markdown_licenses = '\n--------------------\n\n## List of Licenses\n\n'
+        markdown_licenses = markdown_licenses = '\n--------------------\n\n## 许可证清单\n\n'
     for _license in licenses:
         if step['module_options']['exclude_licenses']:
             if _license['identifier'] in step['module_options']['exclude_licenses']:
