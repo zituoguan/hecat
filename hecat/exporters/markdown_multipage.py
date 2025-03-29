@@ -169,6 +169,7 @@ MARKDOWN_CSS="""
     }
     .sidebar-brand-text {
         font-size: 1.4rem;
+        margin: 0 auto;
     }
 """
 
