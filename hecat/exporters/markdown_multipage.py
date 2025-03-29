@@ -302,7 +302,7 @@ def render_item_page(step, item_type, item, software_list):
         platforms_relative_url = './'
         output_dir = step['module_options']['output_directory'] + '/md/platforms/'
     else:
-        logging.error('facte_type 的值无效，必须是 tag 或 platform')
+        logging.error('item_type 的值无效，必须是 tag 或 platform')
         sys.exit(1)
     header_template.globals['to_kebab_case'] = to_kebab_case
     markdown_page_header = header_template.render(item=item)

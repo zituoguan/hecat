@@ -1,4 +1,4 @@
-"""hecat CLI entrypoint"""
+"""hecat CLI 入口点"""
 import sys
 import argparse
 import logging
@@ -17,11 +17,11 @@ LOG_LEVEL_MAPPING = {
                     }
 
 def main():
-    """Main loop"""
+    """主循环"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', dest='config_file', type=str, default='.hecat.yml', help='configuration file (default .hecat.yml)')
-    parser.add_argument('--log-level', dest='log_level', type=str, default='INFO', help='log level (default INFO)', choices=['ERROR', 'WARNING', 'INFO', 'DEBUG'])
-    parser.add_argument('--log-file', dest='log_file', type=str, default=None, help='log file (default none)')
+    parser.add_argument('--config', dest='config_file', type=str, default='.hecat.yml', help='配置文件（默认 .hecat.yml）')
+    parser.add_argument('--log-level', dest='log_level', type=str, default='INFO', help='日志级别（默认 INFO）', choices=['ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    parser.add_argument('--log-file', dest='log_file', type=str, default=None, help='日志文件（默认无）')
     args = parser.parse_args()
     if args.log_file is not None:
         logging_handlers = [ logging.FileHandler(args.log_file), logging.StreamHandler() ]
@@ -30,7 +30,7 @@ def main():
     logging.basicConfig(level=LOG_LEVEL_MAPPING.get(args.log_level), format=LOG_FORMAT, handlers = logging_handlers)
     config = load_yaml_data(args.config_file)
     for step in config['steps']:
-        logging.info('running step %s', step['name'])
+        logging.info('执行步骤 %s', step['name'])
         if step['module'] == 'importers/markdown_awesome':
             import_markdown_awesome(step)
         elif step['module'] == 'importers/shaarli_api':
@@ -52,9 +52,9 @@ def main():
         elif step['module'] == 'exporters/markdown_multipage':
             render_markdown_multipage(step)
         else:
-            logging.error('step %s: unknown module %s', step['name'], step['module'])
+            logging.error('步骤 %s：未知模块 %s', step['name'], step['module'])
             sys.exit(1)
-    logging.info('all steps completed')
+    logging.info('所有步骤已完成')
 
 if __name__ == "__main__":
     main()

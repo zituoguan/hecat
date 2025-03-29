@@ -1,11 +1,11 @@
-"""hecat - common utilities"""
+"""hecat - 通用工具函数"""
 import sys
 import os
 import ruamel.yaml
 import logging
 
 def list_files(directory):
-    """list files in a directory, return an alphabetically sorted list"""
+    """列出目录中的文件，返回按字母顺序排序的列表"""
     source_files = []
     for _, _, files in os.walk(directory):
         for file in files:
@@ -13,7 +13,7 @@ def list_files(directory):
     return source_files
 
 def to_kebab_case(string):
-    """convert a string to kebab-case, remove some special characters"""
+    """将字符串转换为 kebab-case，移除一些特殊字符"""
     replacements = {
         ' ': '-',
         ':': '-',
@@ -34,14 +34,14 @@ def to_kebab_case(string):
     return newstring
 
 def load_yaml_data(path, sort_key=False):
-    """load data from YAML source files
-    if the path is a file, data will be loaded directly from it
-    if the path is a directory, data will be loaded by adding the content of each file in the directory to a list
-    if sort_key=SOMEKEY is passed, items will be sorted alphabetically by the specified key"""
+    """从 YAML 源文件加载数据
+    如果路径是文件，数据将直接从中加载
+    如果路径是目录，数据将通过将目录中每个文件的内容添加到列表中来加载
+    如果传递了 sort_key=SOMEKEY，则项目将按指定键按字母顺序排序"""
     yaml = ruamel.yaml.YAML(typ='rt')
     data = []
     if os.path.isfile(path):
-        logging.debug('loading data from %s', path)
+        logging.debug('正在从 %s 加载数据', path)
         with open(path, 'r', encoding="utf-8") as yaml_data:
             data = yaml.load(yaml_data)
         if sort_key:
@@ -50,7 +50,7 @@ def load_yaml_data(path, sort_key=False):
     elif os.path.isdir(path):
         for file in sorted(list_files(path)):
             source_file = path + '/' + file
-            logging.debug('loading data from %s', source_file)
+            logging.debug('正在从 %s 加载数据', source_file)
             with open(source_file, 'r', encoding="utf-8") as yaml_data:
                 item = yaml.load(yaml_data)
                 data.append(item)
@@ -58,22 +58,22 @@ def load_yaml_data(path, sort_key=False):
                 data = sorted(data, key=lambda k: k[sort_key].upper())
         return data
     else:
-        logging.error('%s is not a file or directory', path)
+        logging.error('%s 不是文件或目录', path)
         sys.exit(1)
 
 def load_config(config_file):
-    """load steps/settings from a configuration file"""
+    """从配置文件加载步骤/设置"""
     yaml = ruamel.yaml.YAML(typ='rt')
-    logging.debug('loading configuration from %s', config_file)
+    logging.debug('正在从 %s 加载配置', config_file)
     if not os.path.isfile(config_file):
-        logging.error('configuration file %s does not exist')
+        logging.error('配置文件 %s 不存在')
         sys.exit(1)
     with open(config_file, 'r', encoding="utf-8") as cfg:
         config = yaml.load(cfg)
     return config
 
 def render_markdown_licenses(step, licenses, back_to_top_url=None):
-    """render a markdown-formatted licenses list"""
+    """渲染 markdown 格式的许可证列表"""
     if back_to_top_url is not None:
         markdown_licenses = '--------------------\n\n## List of Licenses\n\n**[`^        back to top        ^`](' + back_to_top_url + ')**\n\n'
     else:
@@ -81,11 +81,11 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
     for _license in licenses:
         if step['module_options']['exclude_licenses']:
             if _license['identifier'] in step['module_options']['exclude_licenses']:
-                logging.debug('license identifier %s listed in exclude_licenses, skipping', _license['identifier'])
+                logging.debug('许可证标识符 %s 列在 exclude_licenses 中，跳过', _license['identifier'])
                 continue
         elif step['module_options']['include_licenses']:
             if _license['identifier'] not in step['module_options']['include_licenses']:
-                logging.debug('license identifier %s not listed in include_licenses, skipping', _license['identifier'])
+                logging.debug('许可证标识符 %s 未列在 include_licenses 中，跳过', _license['identifier'])
                 continue
         try:
             markdown_licenses += '- `{}` - [{}]({})\n'.format(
@@ -93,17 +93,18 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
                 _license['name'],
                 _license['url'])
         except KeyError as err:
-            logging.error('missing fields in license %s: KeyError: %s', _license, err)
+            logging.error('许可证 %s 中缺少字段: KeyError: %s', _license, err)
             sys.exit(1)
     return markdown_licenses
 
 def write_data_file(step, items):
-    """write updated data back to the data file"""
+    """将更新后的数据写回数据文件"""
     yaml = ruamel.yaml.YAML(typ='rt')
     yaml.indent(sequence=2, offset=0)
     yaml.width = 99999
     with open(step['module_options']['data_file'] + '.tmp', 'w', encoding="utf-8") as temp_yaml_file:
-        logging.info('writing temporary data file %s', step['module_options']['data_file'] + '.tmp')
+        logging.info('写入临时数据文件 %s', step['module_options']['data_file'] + '.tmp')
         yaml.dump(items, temp_yaml_file)
-    logging.info('writing data file %s', step['module_options']['data_file'])
+    logging.info('写入数据文件 %s', step['module_options']['data_file'])
     os.rename(step['module_options']['data_file'] + '.tmp', step['module_options']['data_file'])
+    

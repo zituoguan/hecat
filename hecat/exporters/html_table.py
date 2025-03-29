@@ -1,20 +1,20 @@
-"""render data as HTML table
+"""将数据渲染为HTML表格
 # $ cat hecat.yml
 steps:
-  - name: export shaarli data to HTML table
+  - name: 将shaarli数据导出为HTML表格
     module: importers/shaarli_api
     module_options:
-      source_file: shaarli.yml # file from which data will be loaded
-      output_file: index.html # (default index.html) output HTML table file
-      html_title: "hecat HTML export" # (default "hecat HTML export") output HTML title
-      favicon_base64: "iVBORw0KGgoAAAAN..." # (defaults to the default favicon) base64-encoded png favicon
-      description_format: paragraph # (details/paragraph, default details) wrap the description in a HTML details tag
-      archive_dir: webpages # (default webpages) path to the webpages archive base directory (archive_webpages module's output_directory)
+      source_file: shaarli.yml # 将从中加载数据的文件
+      output_file: index.html # (默认 index.html) 输出HTML表格文件
+      html_title: "hecat HTML导出" # (默认 "hecat HTML export") 输出HTML标题
+      favicon_base64: "iVBORw0KGgoAAAAN..." # (默认为默认favicon) base64编码的png favicon
+      description_format: paragraph # (details/paragraph, 默认 details) 将描述包装在HTML details标签中
+      archive_dir: webpages # (默认 webpages) 网页归档基础目录的路径(archive_webpages模块的output_directory)
 
-Source directory structure:
+源目录结构:
 └── shaarli.yml
 
-Output directory structure:
+输出目录结构:
 └── index.html
 """
 
@@ -105,14 +105,14 @@ HTML_JINJA = """
 
 <script>
 function myFunctionTitle() {
-  // Declare variables
+  // 声明变量
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("myTitleInput");
   filter = input.value.toUpperCase();
   table = document.getElementById("myTable");
   tr = table.getElementsByTagName("tr");
 
-  // Loop through all table rows, and hide those who don't match the search query
+  // 遍历所有表格行，隐藏那些不匹配搜索查询的行
   for (i = 0; i < tr.length; i++) {
     td = tr[i].getElementsByTagName("td")[1];
     if (td) {
@@ -127,14 +127,14 @@ function myFunctionTitle() {
 }
 
 function myFunctionTag() {
-  // Declare variables
+  // 声明变量
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("myTagInput");
   filter = input.value.toUpperCase();
   table = document.getElementById("myTable");
   tr = table.getElementsByTagName("tr");
 
-  // Loop through all table rows, and hide those who don't match the search query
+  // 遍历所有表格行，隐藏那些不匹配搜索查询的行
   for (i = 0; i < tr.length; i++) {
     td = tr[i].getElementsByTagName("td")[3];
     if (td) {
@@ -153,18 +153,18 @@ function myFunctionTag() {
 </head>
 <body>
 <div class="searchbar">
-<input type="text" id="myTitleInput" onkeyup="myFunctionTitle()" placeholder="Search for titles/descriptions...">
-<input type="text" id="myTagInput" onkeyup="myFunctionTag()" placeholder="Search for @tags..">
-<span>{{ link_count }} links</span>
-<span style="font-size: 75%; color: #666; text-align: 'right';">Built with <a href="https://github.com/nodiscc/hecat">hecat</a></span>
+<input type="text" id="myTitleInput" onkeyup="myFunctionTitle()" placeholder="搜索标题/描述...">
+<input type="text" id="myTagInput" onkeyup="myFunctionTag()" placeholder="搜索@标签..">
+<span>{{ link_count }} 个链接</span>
+<span style="font-size: 75%; color: #666; text-align: 'right';">使用 <a href="https://github.com/nodiscc/hecat">hecat</a> 构建</span>
 </div>
 <table id="myTable">
   <thead>
     <tr>
       <td></td>
-      <td class="title-column">Title</td>
-      <td class="date-column">Date</td>
-      <td>Tags</td>
+      <td class="title-column">标题</td>
+      <td class="date-column">日期</td>
+      <td>标签</td>
     </tr>
   </thead>
 {% for item in items %}
@@ -184,25 +184,25 @@ function myFunctionTag() {
 """
 
 def jinja_markdown(text):
-    """wrapper for using the markdown library from inside the jinja2 template"""
+    """用于从jinja2模板内部使用markdown库的包装器"""
     return markdown.markdown(text, extensions=['fenced_code', 'pymdownx.magiclink'])
 
 def simple_datetime(date):
-    """format dates as YYYY-mm-dd HH:MM:SS"""
+    """将日期格式化为YYYY-mm-dd HH:MM:SS"""
     return datetime.strftime(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z"), "%Y-%m-%d %H:%M:%S")
 
 def render_html_table(step):
-    """render the list data as a HTML table"""
+    """将列表数据渲染为HTML表格"""
     if 'output_file' not in step['module_options']:
         step['module_options']['output_file'] = 'index.html'
     if 'html_title' not in step['module_options']:
-        step['module_options']['html_title'] = 'hecat HTML export'
+        step['module_options']['html_title'] = 'hecat HTML导出'
     if 'favicon_base64' not in step['module_options']:
         step['module_options']['favicon_base64'] = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAgMAAABinRfyAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAB3RJTUUH5wIEFgEeyYiWTQAAAAlQTFRFAAAALi4u////gGfi/AAAAAF0Uk5TAEDm2GYAAAABYktHRAJmC3xkAAAAKUlEQVQI12NggAPR0NAQBqlVq5YwSIaGpjBILsVFhK1MgSgBKwZrgwMAswcRaNWVOXAAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjMtMDItMDRUMjI6MDE6MzArMDA6MDB1Hpz/AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIzLTAyLTA0VDIyOjAxOjMwKzAwOjAwBEMkQwAAAABJRU5ErkJggg=='
     if 'description_format' not in step['module_options']:
         step['module_options']['description_format'] = 'details'
     if step['module_options']['description_format'] not in ['details', 'paragraph']:
-        logging.error('unrecognized value %s for description_format option. Allowed values: details, paragraph', step['module_options']['description_format'])
+        logging.error('description_format选项的值%s无法识别。允许的值：details, paragraph', step['module_options']['description_format'])
         sys.exit(1)
     if 'archive_dir' not in step['module_options']:
         step['module_options']['archive_dir'] = 'webpages'
@@ -212,7 +212,7 @@ def render_html_table(step):
     html_template.globals['jinja_markdown'] = jinja_markdown
     html_template.globals['simple_datetime'] = simple_datetime
     with open(step['module_options']['output_file'], 'w+', encoding="utf-8") as html_file:
-        logging.info('writing file %s', step['module_options']['output_file'])
+        logging.info('写入文件 %s', step['module_options']['output_file'])
         html_file.write(html_template.render(items=data,
                                             link_count=link_count,
                                             html_title=step['module_options']['html_title'],
