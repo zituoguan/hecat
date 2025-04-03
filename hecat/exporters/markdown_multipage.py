@@ -1,3 +1,259 @@
+"""将 YAML 数据导出到一个多页 Markdown 网站，可用于使用 Sphinx 生成 HTML 网站
+- 一个列出所有项目的主 index.html 页面
+- 每个标签的页面
+这将在 output_directory/md 中输出一个中间 Markdown 网站。必须使用 sphinx (https://www.sphinx-doc.org/) 生成最终的 HTML 网站
+
+$ git clone https://github.com/awesome-selfhosted/awesome-selfhosted-data tests/awesome-selfhosted-data
+$ $EDITOR .hecat.yml
+$ hecat
+
+# .hecat.yml
+steps:
+  - name: 将 YAML 数据导出到多页 Markdown/HTML 网站
+    module: exporters/markdown_multipage
+    module_options:
+      source_directory: tests/awesome-selfhosted-data # 包含 YAML 数据的目录
+      output_directory: tests/awesome-selfhosted-html # 写入 Markdown 页面的目录
+      exclude_licenses: # 可选，默认 []
+        - '⊘ Proprietary'
+        - 'BUSL-1.1'
+        - 'CC-BY-NC-4.0'
+        - 'CC-BY-NC-SA-3.0'
+        - 'CC-BY-ND-3.0'
+        - 'Commons-Clause'
+        - 'DPL'
+        - 'SSPL-1.0'
+        - 'DPL'
+        - 'Elastic-1.0'
+        - 'Elastic-2.0'
+
+$ sphinx-build -b html -c CONFIG_DIR/ SOURCE_DIR/ OUTPUT_DIR/
+CONFIG_DIR/ 是包含 conf.py sphinx 配置文件 的目录，示例见 https://github.com/nodiscc/hecat/blob/master/tests/conf.py
+SOURCE_DIR/ 是包含由 hecat/markdown_multipage.py 生成的 Markdown 网站的目录
+OUTPUT_DIR/ 是 HTML 网站的输出目录
+当前，Sphinx 配置文件 (CONFIG_DIR/conf.py) 中预期有以下设置
+  html_theme = 'furo'
+  extensions = ['myst_parser', 'sphinx_design']
+  myst_enable_extensions = ['fieldlist']
+  html_static_path = ['SOURCE_DIR/_static']
+  html_css_files = ['custom.css']
+
+
+输出目录结构（运行 sphinx-build 后）：
+├── html # 发布此目录的内容
+│   ├── genindex.html
+│   ├── index.html
+│   ├── search.html
+│   ├── searchindex.js
+│   ├── _sphinx_design_static
+│   │   ├── *.css
+│   │   └── *.js
+│   ├── _static
+│   │   ├── *.png
+│   │   ├── *.svg
+│   │   ├── custom.css
+│   │   ├── *.css
+│   │   ├── *.js
+│   │   ├── favicon.ico
+│   │   └── opensearch.xml
+│   └── tags
+│       ├── analytics.html
+│       ├── archiving-and-digital-preservation-dp.html
+│       ├── ....html
+│       └── wikis.html
+└── md # 中间 Markdown 版本，可以丢弃
+    ├── index.md
+    └── tags
+
+源 YAML 目录结构和软件/平台数据的格式在 markdown_singlepage.py 中有文档说明。
+"""
+
+import os
+import sys
+import logging
+from datetime import datetime, timedelta
+import urllib
+import ruamel.yaml
+from jinja2 import Template
+from ..utils import load_yaml_data, to_kebab_case, render_markdown_licenses
+
+yaml = ruamel.yaml.YAML(typ='safe')
+yaml.indent(sequence=4, offset=2)
+
+MARKDOWN_CSS="""
+    .tag {
+        background-color: #DBEAFE;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #1E40AF;
+        font-weight: bold;
+        display: inline-block;
+    }
+    .tag a {
+        text-decoration: none
+    }
+    .platform {
+        background-color: #B0E6A3;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #2B4026;
+        font-weight: bold;
+        display: inline-block;
+    }
+    .platform a {
+        text-decoration: none;
+        color: #2B4026;
+    }
+    .license-box {
+        background-color: #A7C7F9;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        display: inline-block;
+    }
+    .license-link {
+        color: #173B80;
+        font-weight: bold;
+        text-decoration: none
+    }
+    .stars {
+        background-color: #FFFCAB;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #856000;
+        font-weight: bold;
+        display: inline-block;
+    }
+    .updated-at {
+        background-color: #EFEFEF;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #444444;
+        display: inline-block;
+        font-weight: bold
+    }
+    .orangebox {
+        background-color: #FD9D49;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #FFFFFF;
+        display: inline-block;
+        font-weight: bold
+    }
+    .redbox {
+        background-color: #FD4949;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        color: #FFFFFF;
+        display: inline-block;
+        font-weight: bold
+    }
+    .external-link-box {
+        background-color: #1E40AF;
+        border-radius: 5px;
+        padding: 2px 8px 0px 8px;
+        display: inline-block;
+    }
+    .external-link {
+        color: #DBEAFE;
+        font-weight: bold;
+        text-decoration: none
+    }
+    .external-link a:hover {
+        color: #FFF;
+    }
+    .sd-octicon {
+        vertical-align: inherit
+    }
+    hr.docutils {
+        margin: 1rem 0;
+    }
+    .sidebar-brand-text {
+        font-size: 1.4rem;
+        margin: 0 auto;
+    }
+"""
+
+MARKDOWN_INDEX_CONTENT_HEADER="""
+--------------------
+
+## 软件
+
+此页面列出了所有项目。使用侧边栏中的链接或点击 {octicon}`tag;0.8em;octicon` 标签按类别浏览项目。
+"""
+
+SOFTWARE_JINJA_MARKDOWN="""
+--------------------
+
+### {{ software['name'] }}
+
+{{ software['description'] }}
+
+<span class="external-link-box"><a class="external-link" href="{{ software['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
+<span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
+{% if software['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
+{% endif -%}
+{% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
+{% endif %}
+
+<span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
+<span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
+{% for platform in platforms %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
+{% for license in software['licenses'] %}<span class="license-box"><a class="license-link" href="{{ licenses_relative_url }}">{% raw %}{octicon}{% endraw %}`law;0.8em;octicon` {{ license }}</a> </span> {% endfor %}
+{% if software['depends_3rdparty'] is defined and software['depends_3rdparty'] %}<span class="orangebox" title="依赖于用户无法控制的专有服务">⚠ 反特性</span>{% endif %}
+
+{% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
+{% endfor %}
+
+"""
+
+TAG_HEADER_JINJA_MARKDOWN="""
+
+# {{ item['name'] }}
+
+{{ item['description']}}
+
+{% if item['related_tags'] is defined %}```{admonition} 相关标签
+{% for related_tag in item['related_tags'] %}- [{{ related_tag }}]({{ to_kebab_case(related_tag) }}.md)
+{% endfor %}
+```
+{% endif %}
+{% if item['external_links'] is defined %}```{seealso}
+{% for link in item['external_links'] %}- [{{ link['title'] }}]({{ link['url'] }})
+{% endfor %}
+{% endif %}
+{% if item['redirect'] is defined %}```{important}
+**请改为访问 {% for redirect in item['redirect'] %}[{{ redirect['title'] }}]({{ redirect['url'] }}){% if not loop.last %}{{', '}}{% endif %}{% endfor %}**
+```{% endif %}
+
+"""
+
+MARKDOWN_TAGPAGE_CONTENT_HEADER="""
+--------------------
+
+## 软件
+
+此页面列出了该类别中的所有项目。使用 [所有项目的索引](../index.md)、侧边栏，或点击 {octicon}`tag;0.8em;octicon` 标签浏览其他类别。
+
+"""
+
+
+PLATFORM_HEADER_JINJA_MARKDOWN="""
+
+# {{ item['name'] }}
+
+{{ item['description']}}
+
+"""
+
+MARKDOWN_PLATFORMPAGE_CONTENT_HEADER="""
+--------------------
+
+## 软件
+
+此页面列出了使用此编程语言或部署平台的所有项目。仅考虑主要的服务器端需求、打包或分发格式。
+
+"""
+
 # 新增软件页面的头部模板
 SOFTWARE_HEADER_JINJA_MARKDOWN="""
 
@@ -147,6 +403,45 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     
     return markdown_related
 
+def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#list-of-licenses'):
+    """将软件项目信息渲染为 Markdown 列表项"""
+    tags_dicts_list = []
+    platforms_dicts_list = []
+    
+    for tag in software['tags']:
+        tags_dicts_list.append({"name": tag, "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'})
+    
+    for platform in software['platforms']:
+        platforms_dicts_list.append({"name": platform, "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'})
+    
+    date_css_class = 'updated-at'
+    if 'updated_at' in software:
+        last_update_time = datetime.strptime(software['updated_at'], "%Y-%m-%d")
+        if last_update_time < datetime.now() - timedelta(days=365):
+            date_css_class = 'redbox'
+        elif last_update_time < datetime.now() - timedelta(days=186):
+            date_css_class = 'orangebox'
+    
+    # 创建软件页面链接
+    software_page_url = software_relative_url + to_kebab_case(software['name']) + '.html'
+    
+    # 修改软件名称部分，使其成为链接
+    SOFTWARE_JINJA_MARKDOWN_WITH_LINK = SOFTWARE_JINJA_MARKDOWN.replace(
+        "### {{ software['name'] }}", 
+        "### [{{ software['name'] }}](" + software_page_url + ")"
+    )
+    
+    software_template = Template(SOFTWARE_JINJA_MARKDOWN_WITH_LINK)
+    markdown_software = software_template.render(
+        software=software,
+        tags=tags_dicts_list,
+        platforms=platforms_dicts_list,
+        date_css_class=date_css_class,
+        licenses_relative_url=licenses_relative_url
+    )
+    
+    return markdown_software
+
 def render_item_page(step, item_type, item, software_list):
     """
     为标签、平台或软件渲染页面。
@@ -256,47 +551,16 @@ def render_item_page(step, item_type, item, software_list):
         logging.debug('正在写入输出文件 %s', output_file_name)
         outfile.write(markdown_page)
 
-# 修改现有的render_markdown_software函数以包含到软件详情页面的链接
-def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#list-of-licenses'):
-    """将软件项目信息渲染为 Markdown 列表项"""
-    tags_dicts_list = []
-    platforms_dicts_list = []
-    
-    for tag in software['tags']:
-        tags_dicts_list.append({"name": tag, "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'})
-    
-    for platform in software['platforms']:
-        platforms_dicts_list.append({"name": platform, "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'})
-    
-    date_css_class = 'updated-at'
-    if 'updated_at' in software:
-        last_update_time = datetime.strptime(software['updated_at'], "%Y-%m-%d")
-        if last_update_time < datetime.now() - timedelta(days=365):
-            date_css_class = 'redbox'
-        elif last_update_time < datetime.now() - timedelta(days=186):
-            date_css_class = 'orangebox'
-    
-    # 创建软件页面链接
-    software_page_url = software_relative_url + to_kebab_case(software['name']) + '.html'
-    
-    # 修改软件名称部分，使其成为链接
-    SOFTWARE_JINJA_MARKDOWN_WITH_LINK = SOFTWARE_JINJA_MARKDOWN.replace(
-        "### {{ software['name'] }}", 
-        "### [{{ software['name'] }}](" + software_page_url + ")"
-    )
-    
-    software_template = Template(SOFTWARE_JINJA_MARKDOWN_WITH_LINK)
-    markdown_software = software_template.render(
-        software=software,
-        tags=tags_dicts_list,
-        platforms=platforms_dicts_list,
-        date_css_class=date_css_class,
-        licenses_relative_url=licenses_relative_url
-    )
-    
-    return markdown_software
+def render_markdown_toctree(tags):
+    """渲染 toctree 块"""
+    logging.debug('正在渲染 toctree')
+    tags_files_list = ''
+    for tag in tags:
+        tag_file_name = 'tags/' + to_kebab_case(tag['name'] + '.md')
+        tags_files_list = '{}\n{}'.format(tags_files_list, tag_file_name)
+    markdown_toctree = '\n```{{toctree}}\n:maxdepth: 1\n:hidden:\n{}\n```\n\n'.format(tags_files_list)
+    return markdown_toctree
 
-# 修改render_markdown_multipage函数以添加软件页面渲染
 def render_markdown_multipage(step):
     """
     按字母顺序渲染所有软件的单页 Markdown 列表
