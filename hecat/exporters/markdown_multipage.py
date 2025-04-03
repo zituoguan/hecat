@@ -185,7 +185,7 @@ MARKDOWN_INDEX_CONTENT_HEADER="""
 SOFTWARE_JINJA_MARKDOWN="""
 --------------------
 
-### [{{ software['name'] }}]({{ software_url }})
+### <a href="{{software_url }}">{{ software['name'] }}</a>
 
 {{ software['description'] }}
 
@@ -322,11 +322,11 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 以下软件与 {{ software['name'] }} 有相似的标签：
 
 {% for related in related_software_list %}
-### [{{ related['name'] }}]({{ software_relative_url + to_kebab_case(related['name']) + '.html' }})
+### <a href="{{ software_relative_url + to_kebab_case(related['name']) + '.html' }}">{{ related['name'] }}</a>
 
 {% if related['description'] is defined %}{{ related['short_description'] }}{% endif %}
 
-标签: {% for tag in related['display_tags'] %}[{{ tag['name'] }}]({{ tag['href'] }}){% if not loop.last %}, {% endif %}{% endfor %}
+标签: {% for tag in related['display_tags'] %}<a href="{{ tag['href'] }}">{{ tag['name'] }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
 
 {% endfor %}
 """
