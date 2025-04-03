@@ -322,7 +322,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 """
 
-def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#list-of-licenses'):
+def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#id4'):
     """渲染软件详细信息页面的内容"""
     tags_dicts_list = []
     platforms_dicts_list = []
@@ -358,7 +358,7 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
     
     return markdown_detail
 
-def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#list-of-licenses'):
+def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#id4'):
     """渲染与当前软件相关的软件列表"""
     related_software_list = []
     software_tags = set(software['tags'])
@@ -383,7 +383,7 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     
     # 为每个相关软件添加简短描述
     for related in related_software_list:
-        software_url = software_relative_url + to_kebab_case(related['name']) + '.html'
+        software_url = software_relative_url + urllib.parse.quote(to_kebab_case(related['name'])) + '.html'
         markdown_related += f"### [{related['name']}]({software_url})\n\n"
         
         # 添加简短描述
@@ -405,7 +405,7 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     
     return markdown_related
 
-def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#list-of-licenses'):
+def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#id4'):
     """将软件项目信息渲染为 Markdown 列表项"""
     tags_dicts_list = []
     platforms_dicts_list = []
@@ -425,7 +425,7 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
             date_css_class = 'orangebox'
     
     # 创建软件页面链接
-    software_page_url = software_relative_url + to_kebab_case(software['name']) + '.html'
+    software_page_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name'])) + '.html'
     
     # 修改软件名称部分，使其成为链接
     SOFTWARE_JINJA_MARKDOWN_WITH_LINK = SOFTWARE_JINJA_MARKDOWN.replace(
@@ -479,7 +479,7 @@ def render_item_page(step, item_type, item, software_list):
         match_key = None  # 软件页面不需要匹配键
         tags_relative_url = '../tags/'
         platforms_relative_url = '../platforms/'
-        software_relative_url = '../software/'
+        software_relative_url = './'
         output_dir = step['module_options']['output_directory'] + '/md/software/'
         # 确保输出目录存在
         try:
@@ -499,7 +499,7 @@ def render_item_page(step, item_type, item, software_list):
             item,
             tags_relative_url=tags_relative_url,
             platforms_relative_url=platforms_relative_url,
-            licenses_relative_url='../index.html#list-of-licenses'
+            licenses_relative_url='../index.html#id4'
         )
         
         # 渲染相关软件
@@ -509,7 +509,7 @@ def render_item_page(step, item_type, item, software_list):
             tags_relative_url=tags_relative_url,
             platforms_relative_url=platforms_relative_url,
             software_relative_url=software_relative_url,
-            licenses_relative_url='../index.html#list-of-licenses'
+            licenses_relative_url='../index.html#id4'
         )
         
         # 组合完整页面
@@ -533,7 +533,7 @@ def render_item_page(step, item_type, item, software_list):
                     tags_relative_url=tags_relative_url,
                     platforms_relative_url=platforms_relative_url,
                     software_relative_url=software_relative_url,  # 新增软件页面的相对URL
-                    licenses_relative_url='../index.html#list-of-licenses'
+                    licenses_relative_url='../index.html#id4'
                 )
         
         if markdown_software_list:
