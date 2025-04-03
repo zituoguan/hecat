@@ -3,11 +3,14 @@
 本项目的所有重要变更都将记录在此文件中。
 格式基于 [Keep a Changelog](http://keepachangelog.com/)。
 
-#### [v1.4.0](https://github.com/nodiscc/hecat/releases/tag/1.4.0) - 未发布
+#### [v1.4.0](https://github.com/nodiscc/hecat/releases/tag/1.4.0) - 2025-03-29
 
 **新增：**
 - processors/archive_webpages: 允许使用 `exclude_regex: URL_REGEX` 排除 URL
 - processors/archive_webpages: 允许移除已经存在的被排除 URL 的本地归档（`clean_excluded: False/True`）
+
+**Fixed:**
+- processors/url_check: handle TooManyRedirects exception
 
 ---------------------
 
