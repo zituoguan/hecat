@@ -273,6 +273,8 @@ MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER="""
 
 # 新增软件详情内容的 Jinja 模板
 SOFTWARE_DETAIL_JINJA_MARKDOWN="""
+--------------------
+
 <span class="external-link-box"><a class="external-link" href="{{ software['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
 <span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
 {% if software['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
@@ -477,7 +479,7 @@ def render_item_page(step, item_type, item, software_list):
         match_key = None  # 软件页面不需要匹配键
         tags_relative_url = '../tags/'
         platforms_relative_url = '../platforms/'
-        software_relative_url = './'
+        software_relative_url = '../software/'
         output_dir = step['module_options']['output_directory'] + '/md/software/'
         # 确保输出目录存在
         try:
@@ -597,7 +599,7 @@ def render_markdown_multipage(step):
             # 使用修改后的函数，它将在软件名上添加链接
             markdown_software_list = markdown_software_list + render_markdown_software(
                 software,
-                software_relative_url='software/'
+                software_relative_url='./software/'
             )
     
     markdown_licenses = render_markdown_licenses(step, licenses)
