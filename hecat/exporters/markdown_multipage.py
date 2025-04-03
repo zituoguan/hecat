@@ -381,9 +381,7 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     
     # 为每个相关软件添加简短描述
     for related in related_software_list:
-        # 修复软件链接生成方式
-        related_name_kebab = to_kebab_case(related['name'])
-        software_url = f"{software_relative_url}{urllib.parse.quote(related_name_kebab)}.html"
+        software_url = software_relative_url + to_kebab_case(related['name']) + '.html'
         markdown_related += f"### [{related['name']}]({software_url})\n\n"
         
         # 添加简短描述
@@ -394,11 +392,10 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
                 desc = desc[:97] + '...'
             markdown_related += f"{desc}\n\n"
         
-        # 修复标签链接
+        # 添加标签
         tags_list = []
         for tag in related['tags'][:3]:  # 最多显示3个标签
-            tag_kebab = to_kebab_case(tag)
-            tag_url = f"{tags_relative_url}{urllib.parse.quote(tag_kebab)}.html"
+            tag_url = tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
             tags_list.append(f"[{tag}]({tag_url})")
         
         if tags_list:
@@ -412,14 +409,10 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
     platforms_dicts_list = []
     
     for tag in software['tags']:
-        # 修复标签链接
-        tag_url = tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-        tags_dicts_list.append({"name": tag, "href": tag_url})
+        tags_dicts_list.append({"name": tag, "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'})
     
     for platform in software['platforms']:
-        # 修复平台链接
-        platform_url = platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
-        platforms_dicts_list.append({"name": platform, "href": platform_url})
+        platforms_dicts_list.append({"name": platform, "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'})
     
     date_css_class = 'updated-at'
     if 'updated_at' in software:
@@ -429,38 +422,18 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
         elif last_update_time < datetime.now() - timedelta(days=186):
             date_css_class = 'orangebox'
     
-    # 修复软件页面链接 - 避免使用字符串模板拼接
-    software_name_kebab = to_kebab_case(software['name'])
-    software_page_url = f"{software_relative_url}{urllib.parse.quote(software_name_kebab)}.html"
+    # 创建软件页面链接
+    software_page_url = software_relative_url + to_kebab_case(software['name']) + '.html'
     
-    # 创建一个新的模板对象，而不是修改原始字符串 
-    modified_template = Template("""
---------------------
-
-### [{{ software['name'] }}]({{ software_url }})
-
-{{ software['description'] }}
-
-<span class="external-link-box"><a class="external-link" href="{{ software['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
-<span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
-{% if software['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
-{% endif -%}
-{% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
-{% endif %}
-
-<span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
-<span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
-{% for platform in platforms %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
-{% for license in software['licenses'] %}<span class="license-box"><a class="license-link" href="{{ licenses_relative_url }}">{% raw %}{octicon}{% endraw %}`law;0.8em;octicon` {{ license }}</a> </span> {% endfor %}
-{% if software['depends_3rdparty'] is defined and software['depends_3rdparty'] %}<span class="orangebox" title="依赖于用户无法控制的专有服务">⚠ 反特性</span>{% endif %}
-
-{% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
-{% endfor %}
-""")
+    # 修改软件名称部分，使其成为链接
+    SOFTWARE_JINJA_MARKDOWN_WITH_LINK = SOFTWARE_JINJA_MARKDOWN.replace(
+        "### {{ software['name'] }}", 
+        "### [{{ software['name'] }}](" + software_page_url + ")"
+    )
     
-    markdown_software = modified_template.render(
+    software_template = Template(SOFTWARE_JINJA_MARKDOWN_WITH_LINK)
+    markdown_software = software_template.render(
         software=software,
-        software_url=software_page_url,
         tags=tags_dicts_list,
         platforms=platforms_dicts_list,
         date_css_class=date_css_class,
