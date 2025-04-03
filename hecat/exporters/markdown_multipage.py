@@ -181,10 +181,11 @@ MARKDOWN_INDEX_CONTENT_HEADER="""
 此页面列出了所有项目。使用侧边栏中的链接或点击 {octicon}`tag;0.8em;octicon` 标签按类别浏览项目。
 """
 
+# 软件列表项模板 - 带链接到软件详情页面
 SOFTWARE_JINJA_MARKDOWN="""
 --------------------
 
-### {{ software['name'] }}
+### [{{ software['name'] }}]({{ software_url }})
 
 {{ software['description'] }}
 
@@ -254,7 +255,7 @@ MARKDOWN_PLATFORMPAGE_CONTENT_HEADER="""
 
 """
 
-# 新增软件页面的头部模板
+# 软件页面头部模板
 SOFTWARE_HEADER_JINJA_MARKDOWN="""
 
 # {{ item['name'] }}
@@ -263,7 +264,7 @@ SOFTWARE_HEADER_JINJA_MARKDOWN="""
 
 """
 
-# 新增软件页面的内容头部
+# 软件页面内容头部
 MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER="""
 --------------------
 
@@ -271,7 +272,7 @@ MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER="""
 
 """
 
-# 新增软件详情内容的 Jinja 模板
+# 软件详情内容模板
 SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 --------------------
 
@@ -314,12 +315,20 @@ SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 {% endif %}
 """
 
-# 软件相关项目部分
+# 相关软件模板
 SOFTWARE_RELATED_JINJA_MARKDOWN="""
 ## 相关软件
 
 以下软件与 {{ software['name'] }} 有相似的标签：
 
+{% for related in related_software_list %}
+### [{{ related['name'] }}]({{ software_relative_url + to_kebab_case(related['name']) + '.html' }})
+
+{% if related['description'] is defined %}{{ related['short_description'] }}{% endif %}
+
+标签: {% for tag in related['display_tags'] %}[{{ tag['name'] }}]({{ tag['href'] }}){% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endfor %}
 """
 
 def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#id4'):
@@ -359,7 +368,7 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
     return markdown_detail
 
 def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#id4'):
-    """渲染与当前软件相关的软件列表"""
+    """使用模板渲染与当前软件相关的软件列表"""
     related_software_list = []
     software_tags = set(software['tags'])
     
@@ -368,7 +377,26 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
         if other_software['name'] != software['name']:  # 排除自身
             other_tags = set(other_software['tags'])
             if software_tags.intersection(other_tags):  # 如果有共同标签
-                related_software_list.append(other_software)
+                # 准备相关软件的数据
+                related_data = other_software.copy()
+                
+                # 只取描述的第一句或前100个字符
+                if 'description' in related_data:
+                    desc = related_data['description'].split('.')[0] + '.' if '.' in related_data['description'] else related_data['description']
+                    if len(desc) > 100:
+                        desc = desc[:97] + '...'
+                    related_data['short_description'] = desc
+                
+                # 准备标签数据（最多显示3个）
+                display_tags = []
+                for tag in related_data['tags'][:3]:
+                    display_tags.append({
+                        'name': tag,
+                        'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
+                    })
+                related_data['display_tags'] = display_tags
+                
+                related_software_list.append(related_data)
     
     # 只保留前5个相关软件
     related_software_list = related_software_list[:5]
@@ -377,31 +405,15 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     if not related_software_list:
         return ""
     
-    # 添加相关软件标题
+    # 使用模板渲染相关软件列表
     related_template = Template(SOFTWARE_RELATED_JINJA_MARKDOWN)
-    markdown_related = related_template.render(software=software)
+    related_template.globals['to_kebab_case'] = to_kebab_case  # 添加全局函数以在模板中使用
     
-    # 为每个相关软件添加简短描述
-    for related in related_software_list:
-        software_url = software_relative_url + urllib.parse.quote(to_kebab_case(related['name'])) + '.html'
-        markdown_related += f"### [{related['name']}]({software_url})\n\n"
-        
-        # 添加简短描述
-        if 'description' in related:
-            # 只取描述的第一句或前100个字符
-            desc = related['description'].split('.')[0] + '.' if '.' in related['description'] else related['description']
-            if len(desc) > 100:
-                desc = desc[:97] + '...'
-            markdown_related += f"{desc}\n\n"
-        
-        # 添加标签
-        tags_list = []
-        for tag in related['tags'][:3]:  # 最多显示3个标签
-            tag_url = tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-            tags_list.append(f"[{tag}]({tag_url})")
-        
-        if tags_list:
-            markdown_related += f"标签: {', '.join(tags_list)}\n\n"
+    markdown_related = related_template.render(
+        software=software,
+        related_software_list=related_software_list,
+        software_relative_url=software_relative_url
+    )
     
     return markdown_related
 
@@ -411,10 +423,16 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
     platforms_dicts_list = []
     
     for tag in software['tags']:
-        tags_dicts_list.append({"name": tag, "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'})
+        tags_dicts_list.append({
+            "name": tag, 
+            "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
+        })
     
     for platform in software['platforms']:
-        platforms_dicts_list.append({"name": platform, "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'})
+        platforms_dicts_list.append({
+            "name": platform, 
+            "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
+        })
     
     date_css_class = 'updated-at'
     if 'updated_at' in software:
@@ -425,17 +443,12 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
             date_css_class = 'orangebox'
     
     # 创建软件页面链接
-    software_page_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name'])) + '.html'
+    software_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name'])) + '.html'
     
-    # 修改软件名称部分，使其成为链接
-    SOFTWARE_JINJA_MARKDOWN_WITH_LINK = SOFTWARE_JINJA_MARKDOWN.replace(
-        "### {{ software['name'] }}", 
-        "### [{{ software['name'] }}](" + software_page_url + ")"
-    )
-    
-    software_template = Template(SOFTWARE_JINJA_MARKDOWN_WITH_LINK)
+    software_template = Template(SOFTWARE_JINJA_MARKDOWN)
     markdown_software = software_template.render(
         software=software,
+        software_url=software_url,
         tags=tags_dicts_list,
         platforms=platforms_dicts_list,
         date_css_class=date_css_class,
@@ -527,12 +540,11 @@ def render_item_page(step, item_type, item, software_list):
             if any(license in software['licenses'] for license in step['module_options']['exclude_licenses']):
                 logging.debug("%s 的许可证在 exclude_licenses 中，跳过", software['name'])
             elif any(value == item['name'] for value in software[match_key]):
-                # 添加指向软件详情页面的链接
                 markdown_software_list = markdown_software_list + render_markdown_software(
                     software,
                     tags_relative_url=tags_relative_url,
                     platforms_relative_url=platforms_relative_url,
-                    software_relative_url=software_relative_url,  # 新增软件页面的相对URL
+                    software_relative_url=software_relative_url,
                     licenses_relative_url='../index.html#id4'
                 )
         
@@ -596,10 +608,9 @@ def render_markdown_multipage(step):
         if any(license in software['licenses'] for license in step['module_options']['exclude_licenses']):
             logging.debug("%s 的许可证在 exclude_licenses 中，跳过", software['name'])
         else:
-            # 使用修改后的函数，它将在软件名上添加链接
             markdown_software_list = markdown_software_list + render_markdown_software(
                 software,
-                software_relative_url='./software/'
+                software_relative_url='software/'
             )
     
     markdown_licenses = render_markdown_licenses(step, licenses)
