@@ -441,6 +441,7 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
         related_software_list=related_software_list,
         tags=tags_dicts_list,
         platforms=platforms_dicts_list,
+        software_relative_url=software_relative_url
         licenses_relative_url=licenses_relative_url
     )
     
@@ -481,7 +482,6 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
         tags=tags_dicts_list,
         platforms=platforms_dicts_list,
         date_css_class=date_css_class,
-        software_relative_url=software_relative_url,
         licenses_relative_url=licenses_relative_url
     )
     
