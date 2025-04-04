@@ -341,6 +341,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 {% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
 {% endfor %}
+{% endfor %}
 
 """
 
