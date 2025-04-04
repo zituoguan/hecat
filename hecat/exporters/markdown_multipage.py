@@ -481,6 +481,7 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
         tags=tags_dicts_list,
         platforms=platforms_dicts_list,
         date_css_class=date_css_class,
+        software_relative_url=software_relative_url,
         licenses_relative_url=licenses_relative_url
     )
     
