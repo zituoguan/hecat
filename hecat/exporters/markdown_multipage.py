@@ -289,8 +289,6 @@ SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 {% for license in software['licenses'] %}<span class="license-box"><a class="license-link" href="{{ licenses_relative_url }}">{% raw %}{octicon}{% endraw %}`law;0.8em;octicon` {{ license }}</a> </span> {% endfor %}
 {% if software['depends_3rdparty'] is defined and software['depends_3rdparty'] %}<span class="orangebox" title="依赖于用户无法控制的专有服务">⚠ 反特性</span>{% endif %}
 
-### 标签
-
 {% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
 {% endfor %}
 
@@ -321,15 +319,41 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 以下软件与 {{ software['name'] }} 有相似的标签：
 
+--------------------
+
 {% for related in related_software_list %}
 ### <a href="{{ software_relative_url + to_kebab_case(related['name']) + '.html' }}">{{ related['name'] }}</a>
 
 {% if related['description'] is defined %}{{ related['short_description'] }}{% endif %}
 
-标签: {% for tag in related['display_tags'] %}<a href="{{ tag['href'] }}">{{ tag['name'] }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+
+
+<span class="external-link-box"><a class="external-link" href="{{ related['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
+<span class="external-link-box"><a class="external-link" href="{% if related['source_code_url'] is defined %}{{ related['source_code_url'] }}{% else %}{{ related['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
+{% if related['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
+{% endif -%}
+{% if related['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
+{% endif %}
+
+<span class="stars">★{% if related['stargazers_count'] is defined %}{{ related['stargazers_count'] }}{% else %}?{% endif %}</span>
+<span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if related['updated_at'] is defined %}{{ related['updated_at'] }}{% else %}?{% endif %}</span>
+{% for platform in platforms %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
+{% for license in related['licenses'] %}<span class="license-box"><a class="license-link" href="{{ licenses_relative_url }}">{% raw %}{octicon}{% endraw %}`law;0.8em;octicon` {{ license }}</a> </span> {% endfor %}
+{% if related['depends_3rdparty'] is defined and related['depends_3rdparty'] %}<span class="orangebox" title="依赖于用户无法控制的专有服务">⚠ 反特性</span>{% endif %}
+
+{% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
+{% endfor %}
+
+
+标签: {% for tag in tags] %}<a href="{{ tag['href'] }}">{{ tag['name'] }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
 
 {% endfor %}
 """
+
+
+
+
+
 
 def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#id4'):
     """渲染软件详细信息页面的内容"""
@@ -370,6 +394,8 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
 def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#id4'):
     """使用模板渲染与当前软件相关的软件列表"""
     related_software_list = []
+    tags_dicts_list = []
+    platforms_dicts_list = []
     software_tags = set(software['tags'])
     
     # 找出共享至少一个标签的软件
@@ -378,33 +404,44 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
             other_tags = set(other_software['tags'])
             if software_tags.intersection(other_tags):  # 如果有共同标签
                 # 准备相关软件的数据
-                related_data = other_software.copy()
-                
-                # 只取描述的第一句或前100个字符
-                if 'description' in related_data:
-                    desc = related_data['description'].split('.')[0] + '.' if '.' in related_data['description'] else related_data['description']
-                    if len(desc) > 100:
-                        desc = desc[:97] + '...'
-                    related_data['short_description'] = desc
+                related_software = other_software.copy()
                 
                 # 准备标签数据（最多显示3个）
-                display_tags = []
-                for tag in related_data['tags'][:3]:
-                    display_tags.append({
-                        'name': tag,
-                        'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
+                # display_tags = []
+                # for tag in related_data['tags']:
+                #     display_tags.append({
+                #         'name': tag,
+                #         'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
+                #     })
+                # related_data['display_tags'] = display_tags
+                related_software_list.append(related_software)
+                for tag in related_software['tags']:
+                    tags_dicts_list.append({
+                        "name": tag, 
+                        "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
                     })
-                related_data['display_tags'] = display_tags
-                
-                related_software_list.append(related_data)
+
+                for platform in related_software['platforms']:
+                    platforms_dicts_list.append({
+                        "name": platform, 
+                        "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
+                    })
+
     
     # 只保留前5个相关软件
-    related_software_list = related_software_list[:5]
-    
+    #related_software_list = related_software_list[:5]
+
+    # 相关软件的标签和平台
+
+
+
+
     # 如果没有相关软件，返回空字符串
     if not related_software_list:
         return ""
     
+
+
     # 使用模板渲染相关软件列表
     related_template = Template(SOFTWARE_RELATED_JINJA_MARKDOWN)
     related_template.globals['to_kebab_case'] = to_kebab_case  # 添加全局函数以在模板中使用
@@ -412,7 +449,9 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     markdown_related = related_template.render(
         software=software,
         related_software_list=related_software_list,
-        software_relative_url=software_relative_url
+        tags=tags_dicts_list,
+        platforms=platforms_dicts_list,
+        licenses_relative_url=licenses_relative_url
     )
     
     return markdown_related
@@ -508,22 +547,30 @@ def render_item_page(step, item_type, item, software_list):
     
     if item_type == 'software':
         # 渲染软件详情页面
-        markdown_software_detail = render_markdown_software_detail(
-            item,
-            tags_relative_url=tags_relative_url,
-            platforms_relative_url=platforms_relative_url,
-            licenses_relative_url='../index.html#id4'
-        )
+        markdown_software_detail = ''
+        if any(license in item['licenses'] for license in step['module_options']['exclude_licenses']):
+            logging.debug("%s 的许可证在 exclude_licenses 中", item['name'])
+        else:
+            markdown_software_detail = render_markdown_software_detail(
+                item,
+                tags_relative_url=tags_relative_url,
+                platforms_relative_url=platforms_relative_url,
+                licenses_relative_url='../index.html#id4'
+            )
         
         # 渲染相关软件
-        markdown_related_software = render_related_software(
-            item,
-            software_list,
-            tags_relative_url=tags_relative_url,
-            platforms_relative_url=platforms_relative_url,
-            software_relative_url=software_relative_url,
-            licenses_relative_url='../index.html#id4'
-        )
+        markdown_related_software = ''
+        if any(license in item['licenses'] for license in step['module_options']['exclude_licenses']):
+            logging.debug("%s 的许可证在 exclude_licenses 中", item['name'])
+        else:
+            markdown_related_software = render_related_software(
+                item,
+                software_list,
+                tags_relative_url=tags_relative_url,
+                platforms_relative_url=platforms_relative_url,
+                software_relative_url=software_relative_url,
+                licenses_relative_url='../index.html#id4'
+            )
         
         # 组合完整页面
         markdown_page = '{}{}{}{}{}'.format(
