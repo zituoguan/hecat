@@ -326,8 +326,6 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 {% if related['description'] is defined %}{{ related['short_description'] }}{% endif %}
 
-
-
 <span class="external-link-box"><a class="external-link" href="{{ related['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
 <span class="external-link-box"><a class="external-link" href="{% if related['source_code_url'] is defined %}{{ related['source_code_url'] }}{% else %}{{ related['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
 {% if related['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
@@ -344,16 +342,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 {% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
 {% endfor %}
 
-
-标签: {% for tag in tags] %}<a href="{{ tag['href'] }}">{{ tag['name'] }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
-
-{% endfor %}
 """
-
-
-
-
-
 
 def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#id4'):
     """渲染软件详细信息页面的内容"""
