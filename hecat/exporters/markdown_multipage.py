@@ -274,7 +274,6 @@ MARKDOWN_SOFTWAREPAGE_CONTENT_HEADER="""
 
 # 软件详情内容模板
 SOFTWARE_DETAIL_JINJA_MARKDOWN="""
---------------------
 
 <span class="external-link-box"><a class="external-link" href="{{ software['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
 <span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
