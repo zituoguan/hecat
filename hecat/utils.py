@@ -77,16 +77,20 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
     if back_to_top_url is not None:
         markdown_licenses = '--------------------\n\n## List of Licenses\n\n**[`^        back to top        ^`](' + back_to_top_url + ')**\n\n'
     else:
-        markdown_licenses = markdown_licenses = '\n--------------------\n\n## 许可证清单\n\n'
+        markdown_licenses = '\n--------------------\n\n## 许可证清单\n\n'
+    
     for _license in licenses:
-        if step['module_options']['exclude_licenses']:
+        # Check if exclude_licenses exists and contains the identifier
+        if 'exclude_licenses' in step['module_options'] and step['module_options']['exclude_licenses']:
             if _license['identifier'] in step['module_options']['exclude_licenses']:
                 logging.debug('许可证标识符 %s 列在 exclude_licenses 中，跳过', _license['identifier'])
                 continue
-        elif step['module_options']['include_licenses']:
+        # Check if include_licenses exists and does not contain the identifier
+        elif 'include_licenses' in step['module_options'] and step['module_options']['include_licenses']:
             if _license['identifier'] not in step['module_options']['include_licenses']:
                 logging.debug('许可证标识符 %s 未列在 include_licenses 中，跳过', _license['identifier'])
                 continue
+        
         try:
             markdown_licenses += '- `{}` - [{}]({})\n'.format(
                 _license['identifier'],
@@ -95,6 +99,7 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
         except KeyError as err:
             logging.error('许可证 %s 中缺少字段: KeyError: %s', _license, err)
             sys.exit(1)
+    
     return markdown_licenses
 
 def write_data_file(step, items):
