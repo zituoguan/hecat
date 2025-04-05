@@ -384,8 +384,6 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
 def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#id4'):
     """使用模板渲染与当前软件相关的软件列表"""
     related_software_list = []
-    tags_dicts_list = []
-    platforms_dicts_list = []
     software_tags = set(software['tags'])
     
     # 找出共享至少一个标签的软件
@@ -397,41 +395,31 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
                 related_software = other_software.copy()
                 
                 # 准备标签数据（最多显示3个）
-                # display_tags = []
-                # for tag in related_data['tags']:
-                #     display_tags.append({
-                #         'name': tag,
-                #         'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-                #     })
-                # related_data['display_tags'] = display_tags
-                related_software_list.append(related_software)
+                display_tags = []
+                display_platforms = []
                 for tag in related_software['tags']:
-                    tags_dicts_list.append({
-                        "name": tag, 
-                        "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
+                    display_tags.append({
+                        'name': tag,
+                        'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
                     })
-
                 for platform in related_software['platforms']:
-                    platforms_dicts_list.append({
-                        "name": platform, 
-                        "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
+                    display_platforms.append({
+                        'name': platform,
+                        'href': platforms_relative_url + urllib.parse.qutote(to_kebab_case(platform)) + '.html'
                     })
+                related_software['display_tags'] = display_tags
+                related_software['display_platforms'] = display_platforms
+                related_software_list.append(related_software)
 
-    
     # 只保留前5个相关软件
     #related_software_list = related_software_list[:5]
 
     # 相关软件的标签和平台
 
-
-
-
     # 如果没有相关软件，返回空字符串
     if not related_software_list:
         return ""
     
-
-
     # 使用模板渲染相关软件列表
     related_template = Template(SOFTWARE_RELATED_JINJA_MARKDOWN)
     related_template.globals['to_kebab_case'] = to_kebab_case  # 添加全局函数以在模板中使用
@@ -439,9 +427,9 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     markdown_related = related_template.render(
         software=software,
         related_software_list=related_software_list,
-        tags=tags_dicts_list,
-        platforms=platforms_dicts_list,
         software_relative_url=software_relative_url,
+        tags_relative_url=tags_relative_url,
+        platforms_relative_url=platforms_relative_url,
         licenses_relative_url=licenses_relative_url
     )
     
