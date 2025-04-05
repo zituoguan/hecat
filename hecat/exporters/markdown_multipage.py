@@ -335,11 +335,11 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 <span class="stars">★{% if related['stargazers_count'] is defined %}{{ related['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if related['updated_at'] is defined %}{{ related['updated_at'] }}{% else %}?{% endif %}</span>
-{% for platform in platforms %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
+{% for platform in related['display_platforms'] %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
 {% for license in related['licenses'] %}<span class="license-box"><a class="license-link" href="{{ licenses_relative_url }}">{% raw %}{octicon}{% endraw %}`law;0.8em;octicon` {{ license }}</a> </span> {% endfor %}
 {% if related['depends_3rdparty'] is defined and related['depends_3rdparty'] %}<span class="orangebox" title="依赖于用户无法控制的专有服务">⚠ 反特性</span>{% endif %}
 
-{% for tag in tags %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
+{% for tag in related['display_tags'] %}<span class="tag"><a href="{{ tag['href'] }}">{% raw %}{octicon}{% endraw %}`tag;0.8em;octicon` {{ tag['name'] }}</a> </span>
 {% endfor %}
 {% endfor %}
 
@@ -402,12 +402,12 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
                         'name': tag,
                         'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
                     })
+                related_software['display_tags'] = display_tags
                 for platform in related_software['platforms']:
                     display_platforms.append({
                         'name': platform,
-                        'href': platforms_relative_url + urllib.parse.qutote(to_kebab_case(platform)) + '.html'
+                        'href': platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
                     })
-                related_software['display_tags'] = display_tags
                 related_software['display_platforms'] = display_platforms
                 related_software_list.append(related_software)
 
