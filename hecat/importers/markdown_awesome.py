@@ -71,11 +71,10 @@ def import_software(section, step, errors):
     entries = re.findall("^- .*", section['text'], re.MULTILINE)
     for line in entries:
         logging.debug('从行导入软件: %s', line)
-        # 匹配如: - [名称](网址) - 描述。([源码](源码链接)) `许可证` `语言`
-        # matches = re.match(r"\- \[(?P<name>.*)\]\((?P<website_url>[^\)]+)\) (?P<depends_3rdparty>`⚠` )?- (?P<description>.*\.) ((?P<links>.*)\)\) )?`(?P<license>.*)` `(?P<language>.*)`", line) # pylint: disable=line-too-long
-        # 支持“（[源码](...)）”可选，且描述结尾标点可有可无
+        # 支持“（[演示](...)）”和“（[源码](...)）”可选，顺序任意，逗号分隔
+        # 例子: - [名称](网址) - 描述。([演示](demo_url), [源码](source_url)) `许可证` `语言`
         matches = re.match(
-            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*- (?P<description>.*?)(?:（\[(?P<source_code_label>源码|Source Code)\]\((?P<source_code_url>[^\)]+)\)）)?`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
+            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*- (?P<description>.*?)(?:（(?P<links>(?:\[[^\]]+\]\([^\)]+\)(?:, )?)+)）)?\s*`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
             line)
         entry = {}
         try:
@@ -85,32 +84,22 @@ def import_software(section, step, errors):
             entry['licenses'] = matches.group('license').split('/')
             entry['platforms'] = matches.group('language').split('/')
             entry['tags'] = [section['title']]
-            # 源码链接优先用 source_code_url，否则 fallback 到 website_url
-            # if matches.group('source_code_url'):
-            # entry['source_code_url'] = matches.group('source_code_url')
-            # else:
-            # entry['source_code_url'] = entry['website_url']
         except AttributeError:
             error_msg = '条目中缺少必填字段: {}'.format(line)
             logging.error(error_msg)
             errors.append(error_msg)
             continue
-        # if matches.group('links') is not None:
-        #     source_code_url_match = re.match(r".*\[Source Code\]\(([^\)]+).*", matches.group('links'))
-        #     if source_code_url_match is not None:
-        #         entry['source_code_url'] = source_code_url_match.group(1)
-        #     else:
-        #         entry['source_code_url'] = entry['website_url']
-        #     demo_url_match = re.match(r".*\[Demo\]\(([^\)]+).*", matches.group('links'))
-        #     if demo_url_match is not None:
-        #         entry['demo_url'] = demo_url_match.group(1)
-        #     related_software_url_match = re.match(r".*\[Clients\]\(([^\)]+).*", matches.group('links'))
-        #     if related_software_url_match is not None:
-        #         entry['related_software_url'] = related_software_url_match.group(1)
-        # else:
-        #     entry['source_code_url'] = entry['website_url']
-        # if matches.group('depends_3rdparty'):
-        #     entry['depends_3rdparty'] = True
+
+        # 解析 links 部分，查找演示和源码链接
+        entry['source_code_url'] = entry['website_url']
+        if matches.group('links'):
+            links = matches.group('links')
+            # 匹配所有 [标签](url)
+            for label, url in re.findall(r"\[([^\]]+)\]\(([^\)]+)\)", links):
+                if label in ('源码', 'Source Code'):
+                    entry['source_code_url'] = url
+                elif label in ('演示', 'Demo'):
+                    entry['demo_url'] = url
 
         dest_file = '{}/{}'.format(
             step['module_options']['output_directory'] + '/software',
