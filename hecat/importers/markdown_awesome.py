@@ -94,22 +94,22 @@ def import_software(section, step, errors):
             logging.error(error_msg)
             errors.append(error_msg)
             continue
-        if matches.group('links') is not None:
-            source_code_url_match = re.match(r".*\[Source Code\]\(([^\)]+).*", matches.group('links'))
-            if source_code_url_match is not None:
-                entry['source_code_url'] = source_code_url_match.group(1)
-            else:
-                entry['source_code_url'] = entry['website_url']
-            demo_url_match = re.match(r".*\[Demo\]\(([^\)]+).*", matches.group('links'))
-            if demo_url_match is not None:
-                entry['demo_url'] = demo_url_match.group(1)
-            related_software_url_match = re.match(r".*\[Clients\]\(([^\)]+).*", matches.group('links'))
-            if related_software_url_match is not None:
-                entry['related_software_url'] = related_software_url_match.group(1)
-        else:
-            entry['source_code_url'] = entry['website_url']
-        if matches.group('depends_3rdparty'):
-            entry['depends_3rdparty'] = True
+        # if matches.group('links') is not None:
+        #     source_code_url_match = re.match(r".*\[Source Code\]\(([^\)]+).*", matches.group('links'))
+        #     if source_code_url_match is not None:
+        #         entry['source_code_url'] = source_code_url_match.group(1)
+        #     else:
+        #         entry['source_code_url'] = entry['website_url']
+        #     demo_url_match = re.match(r".*\[Demo\]\(([^\)]+).*", matches.group('links'))
+        #     if demo_url_match is not None:
+        #         entry['demo_url'] = demo_url_match.group(1)
+        #     related_software_url_match = re.match(r".*\[Clients\]\(([^\)]+).*", matches.group('links'))
+        #     if related_software_url_match is not None:
+        #         entry['related_software_url'] = related_software_url_match.group(1)
+        # else:
+        #     entry['source_code_url'] = entry['website_url']
+        # if matches.group('depends_3rdparty'):
+        #     entry['depends_3rdparty'] = True
 
         dest_file = '{}/{}'.format(
             step['module_options']['output_directory'] + '/software',
