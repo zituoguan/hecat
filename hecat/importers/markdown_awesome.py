@@ -73,8 +73,9 @@ def import_software(section, step, errors):
         logging.debug('从行导入软件: %s', line)
         # 匹配如: - [名称](网址) - 描述。([源码](源码链接)) `许可证` `语言`
         # matches = re.match(r"\- \[(?P<name>.*)\]\((?P<website_url>[^\)]+)\) (?P<depends_3rdparty>`⚠` )?- (?P<description>.*\.) ((?P<links>.*)\)\) )?`(?P<license>.*)` `(?P<language>.*)`", line) # pylint: disable=line-too-long
+        # 支持“（[源码](...)）”可选，且描述结尾标点可有可无
         matches = re.match(
-            r"\- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\) ?(?P<depends_3rdparty>`⚠` )?- (?P<description>.*?)(?:。|\.)?(?:\s*\(\[(?P<source_code_label>源码|Source Code)\]\((?P<source_code_url>[^\)]+)\)\))? `(?P<license>[^`]+)` `(?P<language>[^`]+)`",
+            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*- (?P<description>.*?)(?:（\[(?P<source_code_label>源码|Source Code)\]\((?P<source_code_url>[^\)]+)\)）)?`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
             line)
         entry = {}
         try:
