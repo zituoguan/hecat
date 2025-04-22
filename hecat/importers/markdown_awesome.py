@@ -74,13 +74,17 @@ def import_software(section, step, errors):
         # 支持“（[演示](...)）”和“（[源码](...)）”可选，顺序任意，逗号分隔
         # 例子: - [名称](网址) - 描述。([演示](demo_url), [源码](source_url)) `许可证` `语言`
         matches = re.match(
-            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*- (?P<description>.*?)(?:（(?P<links>(?:\[[^\]]+\]\([^\)]+\)(?:, )?)+)）)?\s*`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
+            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*-\s*(?P<description>.*?)(?:（(?P<links>(?:\[[^\]]+\]\([^\)]+\)(?:, )?)+)）)?\s*`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
             line)
         entry = {}
         try:
             entry['name'] = matches.group('name')
             entry['website_url'] = matches.group('website_url')
-            entry['description'] = matches.group('description').strip()
+            # 处理描述，去除末尾的 "。（[演示](...), [源码](...))" 部分
+            description = matches.group('description').strip()
+            # 尝试去除描述末尾的 "。（[演示](...), [源码](...))"
+            description = re.sub(r'。?\s*（(\[[^\]]+\]\([^\)]+\)(?:, )?)+）$', '', description)
+            entry['description'] = description
             entry['licenses'] = matches.group('license').split('/')
             entry['platforms'] = matches.group('language').split('/')
             entry['tags'] = [section['title']]
