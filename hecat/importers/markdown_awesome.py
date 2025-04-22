@@ -91,7 +91,6 @@ def import_software(section, step, errors):
             continue
 
         # 解析 links 部分，查找演示和源码链接
-        entry['source_code_url'] = entry['website_url']
         if matches.group('links'):
             links = matches.group('links')
             # 匹配所有 [标签](url)
