@@ -71,15 +71,24 @@ def import_software(section, step, errors):
     entries = re.findall("^- .*", section['text'], re.MULTILINE)
     for line in entries:
         logging.debug('从行导入软件: %s', line)
-        matches = re.match(r"\- \[(?P<name>.*)\]\((?P<website_url>[^\)]+)\) (?P<depends_3rdparty>`⚠` )?- (?P<description>.*\.) ((?P<links>.*)\)\) )?`(?P<license>.*)` `(?P<language>.*)`", line) # pylint: disable=line-too-long
+        # 匹配如: - [名称](网址) - 描述。([源码](源码链接)) `许可证` `语言`
+        # matches = re.match(r"\- \[(?P<name>.*)\]\((?P<website_url>[^\)]+)\) (?P<depends_3rdparty>`⚠` )?- (?P<description>.*\.) ((?P<links>.*)\)\) )?`(?P<license>.*)` `(?P<language>.*)`", line) # pylint: disable=line-too-long
+        matches = re.match(
+            r"\- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\) ?(?P<depends_3rdparty>`⚠` )?- (?P<description>.*?)(?:。|\.)?(?:\s*\(\[(?P<source_code_label>源码|Source Code)\]\((?P<source_code_url>[^\)]+)\)\))? `(?P<license>[^`]+)` `(?P<language>[^`]+)`",
+            line)
         entry = {}
         try:
             entry['name'] = matches.group('name')
             entry['website_url'] = matches.group('website_url')
-            entry['description'] = matches.group('description')
+            entry['description'] = matches.group('description').strip()
             entry['licenses'] = matches.group('license').split('/')
             entry['platforms'] = matches.group('language').split('/')
             entry['tags'] = [section['title']]
+            # 源码链接优先用 source_code_url，否则 fallback 到 website_url
+            # if matches.group('source_code_url'):
+            # entry['source_code_url'] = matches.group('source_code_url')
+            # else:
+            # entry['source_code_url'] = entry['website_url']
         except AttributeError:
             error_msg = '条目中缺少必填字段: {}'.format(line)
             logging.error(error_msg)
