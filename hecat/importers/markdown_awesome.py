@@ -71,10 +71,10 @@ def import_software(section, step, errors):
     entries = re.findall("^- .*", section['text'], re.MULTILINE)
     for line in entries:
         logging.debug('从行导入软件: %s', line)
-        # 支持“（[演示](...)）”和“（[源码](...)）”可选，顺序任意，逗号分隔
+        # 支持"（[演示](...)）"和"（[源码](...)）"可选，顺序任意，逗号分隔
         # 例子: - [名称](网址) - 描述。([演示](demo_url), [源码](source_url)) `许可证` `语言`
         matches = re.match(
-            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*-\s*(?P<description>.*?)(?:。?\s*（(?P<links>(?:\[[^\]]+\]\([^\)]+\)(?:, )?)+)）)?\s*`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
+            r"- \[(?P<name>[^\]]+)\]\((?P<website_url>[^\)]+)\)\s*-\s*(?P<description>.*?)(?:\s*\((?P<links>(?:\[[^\]]+\]\([^\)]+\)(?:,\s*)?)+)\))?\s*`(?P<license>[^`]+)`\s*`(?P<language>[^`]+)`",
             line)
         entry = {}
         try:
