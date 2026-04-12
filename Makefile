@@ -22,16 +22,23 @@ install:
 .PHONY: test # 运行测试
 test: test_pylint clean test_import_shaarli test_download_video test_download_audio test_export_html_table clone_awesome_selfhosted test_import_awesome_selfhosted test_process_awesome_selfhosted test_awesome_lint test_export_awesome_selfhosted_md test_export_awesome_selfhosted_html test_archive_webpages scan_trivy
 
-.PHONY: test_short # 运行测试，除了那些消耗 github API 请求/长 URL 检查的测试
 test_short: test_pylint clean test_import_shaarli test_archive_webpages test_download_video test_download_audio test_export_html_table clone_awesome_selfhosted test_awesome_lint test_export_awesome_selfhosted_md test_export_awesome_selfhosted_html
 
-.PHONY: test_pylint # 运行 linter（非阻塞）
+.PHONY: test # run all tests
+test: test_short test_long
+
+.PHONY: test_short # run tests except those that consume github API requests/long URL checks
+test_short: clean test_import_shaarli test_archive_webpages test_download_video test_download_audio test_export_html_table \
+    clone_awesome_selfhosted test_export_awesome_selfhosted_md test_awesome_lint \
+    test_export_awesome_selfhosted_html
+
+.PHONY: test_short # run long tests
+test_long: test_process_awesome_selfhosted
+
+.PHONY: test_pylint # run linter (non blocking)
 test_pylint: install
-	source .venv/bin/activate && \
-	pip3 install pylint pyyaml && \
-	pylint --errors-only --disable=too-many-locals,line-too-long,consider-using-f-string hecat
-	-source .venv/bin/activate && \
-	pylint --disable=too-many-locals,line-too-long,consider-using-f-string hecat
+	.venv/bin/pip3 install pylint pyyaml
+	.venv/bin/pylint --fail-on E --fail-under=9.45 --disable=too-many-locals,line-too-long,consider-using-f-string,no-else-return hecat
 
 .PHONY: clone_awesome_selfhosted # 克隆 awesome-selfhosted/awesome-selfhosted-data
 clone_awesome_selfhosted:
@@ -46,8 +53,8 @@ test_import_awesome_selfhosted: install
 	hecat --config tests/.hecat.import_awesome_selfhosted.yml && \
 	hecat --config tests/.hecat.import_awesome_selfhosted_nonfree.yml
 
-.PHONY: test_process_awesome_selfhosted # 测试 awesome-selfhosted-data 上的所有处理步骤
-test_process_awesome_selfhosted: install test_url_check test_update_github_metadata test_awesome_lint
+.PHONY: test_process_awesome_selfhosted # test all processing steps on awesome-selfhosted-data
+test_process_awesome_selfhosted: install test_url_check test_update_software_metadata test_awesome_lint
 	cd tests/awesome-selfhosted-data && git --no-pager diff --color=always
 
 .PHONY: test_url_check # 在 awesome-sefhosted-data 上测试 URL 检查器
@@ -55,10 +62,10 @@ test_url_check: install
 	source .venv/bin/activate && \
 	hecat --config tests/.hecat.url_check.yml
 
-.PHONY: test_update_github_metadata # 在 awesome-selfhosted-data 上测试 github 元数据更新器/处理器
-test_update_github_metadata: install
+.PHONY: test_update_software_metadata # test software metadata updater/processor on awesome-selfhosted-data
+test_update_software_metadata: install
 	source .venv/bin/activate && \
-	hecat --config tests/.hecat.github_metadata.yml
+	hecat --log-level DEBUG --config tests/.hecat.update_metadata.yml
 
 .PHONY: test_awesome_lint # 在 awesome-sefhosted-data 上测试 linter/合规性检查器
 test_awesome_lint: install
@@ -106,11 +113,11 @@ test_archive_webpages: install
 	mkdir -p tests/webpages/public/9999999999
 	source .venv/bin/activate && \
 	hecat --log-level DEBUG --config tests/.hecat.archive_webpages.yml
-	# 测试归档页面的存在和内容
-	@grep -q 'Template Designer Documentation' tests/webpages/public/8351/jinja.palletsprojects.com/en/latest/templates/index.html
-	# 测试目录是否被有效移除
-	@if [[ -d tests/webpages/public/9999999999 ]]; then echo "错误 tests/webpages/public/9999999999 应该已被 clean_removed: True 移除"; exit 1; fi
-	@if [[ -d tests/webpages/public/6625 ]]; then echo "错误 tests/webpages/public/6625 应该已被 clean_excluded: True 移除"; exit 1; fi
+	# test existence and content of archived page
+	@grep -q 'official Debian installation media can be purchased' tests/webpages/public/232/www.debian.org/releases/stable/amd64/ch01s05.en.html
+	# test that directories were effectively removed
+	@if [[ -d tests/webpages/public/9999999999 ]]; then echo "ERROR tests/webpages/public/9999999999 should have been removed by clean_removed: True"; exit 1; fi
+	@if [[ -d tests/webpages/public/6625 ]]; then echo "ERROR tests/webpages/public/6625 should have been removed by clean_excluded: True"; exit 1; fi
 
 
 .PHONY: test_export_html_table # 测试将 shaarli 数据导出为 HTML 表格

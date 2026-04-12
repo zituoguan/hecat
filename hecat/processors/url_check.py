@@ -17,10 +17,10 @@ steps:
         - source_code_url
         - website_url
         - demo_url
-      errors_are_fatal: False # (默认 False) 如果为 True，则在处理结束时，如果有任何检查失败，则以错误代码 1 退出
-      exclude_regex: # (默认 []) 不检查匹配这些正则表达式的 URL
-        - '^https://github.com/[\w\.\-]+/[\w\.\-]+$' # 不检查将由 github_metadata 模块处理的 URL
-        - '^https://www.youtube.com/watch.*$' # 不检查 YouTube 视频 URL，即使对于不可用的视频也总是返回 HTTP 200
+      errors_are_fatal: False # (default False) if True exit with error code 1 at the end of processing, if any checks were unsuccessful
+      exclude_regex: # (default []) don't check URLs matching these regular expressions
+        - '^https://github.com/[\w\.\-]+/[\w\.\-]+$' # don't check URLs that will be processed by the software_metadata module
+        - '^https://www.youtube.com/watch.*$' # don't check youtube video URLs, always returns HTTP 200 even for unavailable videos
 """
 
 import sys

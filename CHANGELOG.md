@@ -3,6 +3,53 @@
 本项目的所有重要变更都将记录在此文件中。
 格式基于 [Keep a Changelog](http://keepachangelog.com/)。
 
+
+#### [v1.6.0](https://github.com/nodiscc/hecat/releases/tag/1.6.0) - 2026-03-22
+
+**Added:**
+- processors/software_metadata: add support for Gitlab metadata
+- processors/archive_webpages: add `wget_errors_are_fatal: False` module option
+- processors/download_media: add `abort_on_first_error: False` (stop on download failures if True)
+- processors/archive_webpages: log reasons for skipping items and removing local archive directories
+
+**Changed:**
+- **BREAKING:** rename `processors/github_metadata` to `processors/software_metadata`
+- **BREAKING:** rename `gh_metadata_only_missing` module option to `metadata_only_missing`
+- processors/archive_webpages: improve performance, do not perform unnecessary searches/comparisons
+- processors/archive_webpages: refactoring, separation of concerns, readability
+- processors/download_media: retry download up to 3 times in case of 403 error
+- processors/download_media: limit video downloads to 1080p resolution
+
+**Fixed:**
+- processors/software_metadata: fixes invalid GitHub URLs/deleted repositories not being reported
+- processors/software_metadata: fix issue where GitHub repos that were forks did not get updated
+- processors/archive_webpages: fix clean_excluded: True not really deleting webpage archives for items whose URLs/tags match exclude_regex/exclude tags
+- processors/archive_webpages: fix undefined variable in `local webpage archive found with id N, but not in data` log message
+- processors/archive_webpages: actually write changes/removal of `archive_path` key to the data file
+- processors/archive_webpages: doc: any intersection between `only_tags` and the item's tags will actually cause it to be archived
+- processors/archive_webpages: do not assume `only_tags` is always set
+
+---------------------
+
+#### [v1.5.1](https://github.com/nodiscc/hecat/releases/tag/1.5.1) - 2025-11-29
+
+**Fixed:**
+- processors/github_metadata: match repos by full owner/name path, prevents wrong metadata when 2 projects have the same name
+
+---------------------
+
+#### [v1.5.0](https://github.com/nodiscc/hecat/releases/tag/1.5.0) - 2025-10-23
+
+**Changed:**
+- processors/github_metadata: use GraphQL instad of REST API
+- processors/github_metadata: add new additional metadata keys `commit_history, current_release`
+- processors/github_metadata: new module options `batch_size, commit_history_clean_months, commit_history_fetch_months` with default values
+
+**Fixed:**
+- fix failing tests when `make test_archive_webpages` is run from Github Actions
+
+---------------------
+
 #### [v1.4.0](https://github.com/nodiscc/hecat/releases/tag/1.4.0) - 2025-03-29
 
 **新增：**
