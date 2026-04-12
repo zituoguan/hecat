@@ -526,8 +526,7 @@ def render_item_page(step, item_type, item, software_list):
     if item_type == 'software':
         # 渲染软件详情页面
         markdown_software_detail = ''
-        exclude_licenses = step['module_options'].get('exclude_licenses') or []
-        if any(license in software['licenses'] for license in exclude_licenses):
+        if any(license in item['licenses'] for license in step['module_options']['exclude_licenses']):
             logging.debug("%s 的许可证在 exclude_licenses 中", item['name'])
         else:
             markdown_software_detail = render_markdown_software_detail(
@@ -539,8 +538,7 @@ def render_item_page(step, item_type, item, software_list):
         
         # 渲染相关软件
         markdown_related_software = ''
-        exclude_licenses = step['module_options'].get('exclude_licenses') or []
-        if any(license in software['licenses'] for license in exclude_licenses):
+        if any(license in item['licenses'] for license in step['module_options']['exclude_licenses']):
             logging.debug("%s 的许可证在 exclude_licenses 中", item['name'])
         else:
             markdown_related_software = render_related_software(
@@ -564,8 +562,7 @@ def render_item_page(step, item_type, item, software_list):
         # 原有的标签和平台页面渲染逻辑
         markdown_software_list = ''
         for software in software_list:
-            exclude_licenses = step['module_options'].get('exclude_licenses') or []
-            if any(license in software['licenses'] for license in exclude_licenses):
+            if any(license in software['licenses'] for license in step['module_options']['exclude_licenses']):
                 logging.debug("%s 的许可证在 exclude_licenses 中，跳过", software['name'])
             elif any(value == item['name'] for value in software[match_key]):
                 markdown_software_list = markdown_software_list + render_markdown_software(
@@ -633,8 +630,7 @@ def render_markdown_multipage(step):
     markdown_software_list = ''
     
     for software in software_list:
-        exclude_licenses = step['module_options'].get('exclude_licenses') or []
-        if any(license in software['licenses'] for license in exclude_licenses):
+        if any(license in software['licenses'] for license in step['module_options']['exclude_licenses']):
             logging.debug("%s 的许可证在 exclude_licenses 中，跳过", software['name'])
         else:
             markdown_software_list = markdown_software_list + render_markdown_software(
@@ -689,3 +685,4 @@ def render_markdown_multipage(step):
     with open(output_css_file_name, 'w+', encoding="utf-8") as outfile:
         logging.info('正在写入输出 CSS 文件 %s', output_css_file_name)
         outfile.write(MARKDOWN_CSS)
+        

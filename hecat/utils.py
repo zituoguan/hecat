@@ -79,14 +79,12 @@ def render_markdown_licenses(step, licenses, back_to_top_url=None):
     else:
         markdown_licenses = markdown_licenses = '\n--------------------\n\n## List of Licenses\n\n'
     for _license in licenses:
-        exclude_licenses = step['module_options'].get('exclude_licenses') or []
-        include_licenses = step['module_options'].get('include_licenses') or []
-        if exclude_licenses:
-            if _license['identifier'] in exclude_licenses:
+        if step['module_options']['exclude_licenses']:
+            if _license['identifier'] in step['module_options']['exclude_licenses']:
                 logging.debug('license identifier %s listed in exclude_licenses, skipping', _license['identifier'])
                 continue
-        elif include_licenses:
-            if _license['identifier'] not in include_licenses:
+        elif step['module_options']['include_licenses']:
+            if _license['identifier'] not in step['module_options']['include_licenses']:
                 logging.debug('license identifier %s not listed in include_licenses, skipping', _license['identifier'])
                 continue
         try:
