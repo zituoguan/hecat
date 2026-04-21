@@ -196,6 +196,9 @@ SOFTWARE_JINJA_MARKDOWN="""
 {% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
 {% endif %}
 
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">社区</a></span>
+
 <span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
 {% for platform in platforms %}<span class="platform"><a href="{{ platform['href'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` {{ platform['name'] }}</a> </span> {% endfor %}
@@ -323,7 +326,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 {% for related in related_software_list %}
 ### <a href="{{ software_relative_url + to_kebab_case(related['name']) + '.html' }}">{{ related['name'] }}</a>
 
-{% if related['description'] is defined %}{{ related['short_description'] }}{% endif %}
+{% if related['description'] is defined %}{{ related['description'] }}{% endif %}
 
 <span class="external-link-box"><a class="external-link" href="{{ related['website_url'] }}">{% raw %}{octicon}{% endraw %}`globe;0.8em;octicon` 网站</a></span>
 <span class="external-link-box"><a class="external-link" href="{% if related['source_code_url'] is defined %}{{ related['source_code_url'] }}{% else %}{{ related['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
@@ -331,6 +334,9 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 {% endif -%}
 {% if related['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
 {% endif %}
+
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(related['name']) }}">问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(related['name']) }}">社区</a></span>
 
 <span class="stars">★{% if related['stargazers_count'] is defined %}{{ related['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if related['updated_at'] is defined %}{{ related['updated_at'] }}{% else %}?{% endif %}</span>
@@ -344,7 +350,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 
 """
 
-def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#id4'):
+def render_markdown_software_detail(software, tags_relative_url='./', platforms_relative_url='./', licenses_relative_url='#list-of-licenses'):
     """渲染软件详细信息页面的内容"""
     tags_dicts_list = []
     platforms_dicts_list = []
@@ -380,7 +386,7 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
     
     return markdown_detail
 
-def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#id4'):
+def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#list-of-licenses'):
     """使用模板渲染与当前软件相关的软件列表"""
     related_software_list = []
     software_tags = set(software['tags'])
@@ -434,7 +440,7 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
     
     return markdown_related
 
-def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#id4'):
+def render_markdown_software(software, tags_relative_url='tags/', platforms_relative_url='platforms/', software_relative_url='software/', licenses_relative_url='#list-of-licenses'):
     """将软件项目信息渲染为 Markdown 列表项"""
     tags_dicts_list = []
     platforms_dicts_list = []
@@ -533,7 +539,7 @@ def render_item_page(step, item_type, item, software_list):
                 item,
                 tags_relative_url=tags_relative_url,
                 platforms_relative_url=platforms_relative_url,
-                licenses_relative_url='../index.html#id4'
+                licenses_relative_url='../index.html#list-of-licenses'
             )
         
         # 渲染相关软件
@@ -547,7 +553,7 @@ def render_item_page(step, item_type, item, software_list):
                 tags_relative_url=tags_relative_url,
                 platforms_relative_url=platforms_relative_url,
                 software_relative_url=software_relative_url,
-                licenses_relative_url='../index.html#id4'
+                licenses_relative_url='../index.html#list-of-licenses'
             )
         
         # 组合完整页面
@@ -570,7 +576,7 @@ def render_item_page(step, item_type, item, software_list):
                     tags_relative_url=tags_relative_url,
                     platforms_relative_url=platforms_relative_url,
                     software_relative_url=software_relative_url,
-                    licenses_relative_url='../index.html#id4'
+                    licenses_relative_url='../index.html#list-of-licenses'
                 )
         
         if markdown_software_list:
