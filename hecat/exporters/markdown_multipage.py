@@ -193,10 +193,11 @@ SOFTWARE_JINJA_MARKDOWN="""
 <span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
 {% if software['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
 {% endif -%}
-{% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
-{% endif %}
-<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">问答</a></span>
-<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">社区</a></span>
+{% if software['demo_url'] is defined -%}
+<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
+{% endif -%}
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">{% raw %}{octicon}{% endraw %}`comment-discussion;0.8em;octicon` 问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">{% raw %}{octicon}{% endraw %}`people;0.8em;octicon` 社区</a></span>
 
 <span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
@@ -281,10 +282,11 @@ SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 <span class="external-link-box"><a class="external-link" href="{% if software['source_code_url'] is defined %}{{ software['source_code_url'] }}{% else %}{{ software['website_url'] }}{% endif %}">{% raw %}{octicon}{% endraw %}`git-branch;0.8em;octicon` 源代码</a></span>
 {% if software['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
 {% endif -%}
-{% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
-{% endif %}
-<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">问答</a></span>
-<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">社区</a></span>
+{% if software['demo_url'] is defined -%}
+<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
+{% endif -%}
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">{% raw %}{octicon}{% endraw %}`comment-discussion;0.8em;octicon` 问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">{% raw %}{octicon}{% endraw %}`people;0.8em;octicon` 社区</a></span>
 
 <span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
@@ -334,9 +336,9 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 {% if related['related_software_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['related_software_url'] }}">{% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件</a></span>
 {% endif -%}
 {% if related['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ related['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
-{% endif %}
-<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(related['name']) }}">问答</a></span>
-<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(related['name']) }}">社区</a></span>
+{% endif -%}
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(related['name']) }}">{% raw %}{octicon}{% endraw %}`comment-discussion;0.8em;octicon` 问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(related['name']) }}">{% raw %}{octicon}{% endraw %}`people;0.8em;octicon` 社区</a></span>
 
 <span class="stars">★{% if related['stargazers_count'] is defined %}{{ related['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if related['updated_at'] is defined %}{{ related['updated_at'] }}{% else %}?{% endif %}</span>
