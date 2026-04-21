@@ -283,8 +283,8 @@ SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 {% endif -%}
 {% if software['demo_url'] is defined -%}<span class="external-link-box"><a class="external-link" href="{{ software['demo_url'] }}">{% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示</a></span>
 {% endif %}
-<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(related['name']) }}">问答</a></span>
-<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(related['name']) }}">社区</a></span>
+<span class="external-link-box"><a class="external-link" href="https://dakewen.com/tags/{{ to_kebab_case(software['name']) }}">问答</a></span>
+<span class="external-link-box"><a class="external-link" href="https://welinux.com/tags/{{ to_kebab_case(software['name']) }}">社区</a></span>
 
 <span class="stars">★{% if software['stargazers_count'] is defined %}{{ software['stargazers_count'] }}{% else %}?{% endif %}</span>
 <span class="{{ date_css_class }}" title="最后更新日期">{% raw %}{octicon}{% endraw %}`clock;0.8em;octicon` {% if software['updated_at'] is defined %}{{ software['updated_at'] }}{% else %}?{% endif %}</span>
