@@ -376,6 +376,8 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
             date_css_class = 'orangebox'
             
     detail_template = Template(SOFTWARE_DETAIL_JINJA_MARKDOWN)
+    # 注入 to_kebab_case 以便模板中可用
+    detail_template.globals['to_kebab_case'] = to_kebab_case
     markdown_detail = detail_template.render(
         software=software,
         tags=tags_dicts_list,
@@ -383,7 +385,6 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
         date_css_class=date_css_class,
         licenses_relative_url=licenses_relative_url
     )
-    
     return markdown_detail
 
 def render_related_software(software, software_list, tags_relative_url='./', platforms_relative_url='./', software_relative_url='./', licenses_relative_url='#list-of-licenses'):
