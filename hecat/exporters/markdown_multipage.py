@@ -469,6 +469,7 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
     software_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name'])) + '.html'
     
     software_template = Template(SOFTWARE_JINJA_MARKDOWN)
+    software_template.globals['to_kebab_case'] = to_kebab_case  # 注入模板全局函数
     markdown_software = software_template.render(
         software=software,
         software_url=software_url,
@@ -477,7 +478,6 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
         date_css_class=date_css_class,
         licenses_relative_url=licenses_relative_url
     )
-    
     return markdown_software
 
 def render_item_page(step, item_type, item, software_list):
