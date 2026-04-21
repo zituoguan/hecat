@@ -203,7 +203,7 @@ SOFTWARE_JINJA_MARKDOWN="""
     {% raw %}{octicon}{% endraw %}`play;0.8em;octicon` 演示
 </a></span>
 {% endif -%}
-{% if software['related_software_url'] is defined %}
+{% if software['related_software_url'] is defined -%}
 <span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">
     {% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件
 </a></span>
@@ -308,7 +308,7 @@ SOFTWARE_DETAIL_JINJA_MARKDOWN="""
 <span class="external-link-box"><a class="external-link" href="{{ software['related_software_url'] }}">
     {% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件
 </a></span>
-{% endif -%}
+{% endif %}
 
 
 
@@ -372,7 +372,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 <span class="external-link-box"><a class="external-link" href="{{ related['related_software_url'] }}">
     {% raw %}{octicon}{% endraw %}`package;0.8em;octicon` 相关软件
 </a></span>
-{% endif -%}
+{% endif %}
 
 
 
