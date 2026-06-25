@@ -344,7 +344,7 @@ SOFTWARE_RELATED_JINJA_MARKDOWN="""
 --------------------
 
 {% for related in related_software_list %}
-### <a href="{{ software_relative_url + to_kebab_case(related['name']) + '.html' }}">{{ related['name'] }}</a>
+### <a href="{{ software_relative_url + to_kebab_case(related['name']) }}">{{ related['name'] }}</a>
 
 {% if related['description'] is defined %}{{ related['description'] }}{% endif %}
 
@@ -387,14 +387,12 @@ def render_markdown_software_detail(software, tags_relative_url='./', platforms_
     for tag in software['tags']:
         tags_dicts_list.append({
             "name": tag, 
-            "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-        })
+            "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag))         })
     
     for platform in software['platforms']:
         platforms_dicts_list.append({
             "name": platform, 
-            "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
-        })
+            "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform))         })
     
     date_css_class = 'updated-at'
     if 'updated_at' in software:
@@ -435,14 +433,12 @@ def render_related_software(software, software_list, tags_relative_url='./', pla
                 for tag in related_software['tags']:
                     display_tags.append({
                         'name': tag,
-                        'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-                    })
+                        'href': tags_relative_url + urllib.parse.quote(to_kebab_case(tag))                     })
                 related_software['display_tags'] = display_tags
                 for platform in related_software['platforms']:
                     display_platforms.append({
                         'name': platform,
-                        'href': platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
-                    })
+                        'href': platforms_relative_url + urllib.parse.quote(to_kebab_case(platform))                     })
                 related_software['display_platforms'] = display_platforms
                 related_software_list.append(related_software)
 
@@ -478,14 +474,12 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
     for tag in software['tags']:
         tags_dicts_list.append({
             "name": tag, 
-            "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag)) + '.html'
-        })
+            "href": tags_relative_url + urllib.parse.quote(to_kebab_case(tag))         })
     
     for platform in software['platforms']:
         platforms_dicts_list.append({
             "name": platform, 
-            "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform)) + '.html'
-        })
+            "href": platforms_relative_url + urllib.parse.quote(to_kebab_case(platform))         })
     
     date_css_class = 'updated-at'
     if 'updated_at' in software:
@@ -496,8 +490,7 @@ def render_markdown_software(software, tags_relative_url='tags/', platforms_rela
             date_css_class = 'orangebox'
     
     # 创建软件页面链接
-    software_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name'])) + '.html'
-    
+    software_url = software_relative_url + urllib.parse.quote(to_kebab_case(software['name']))     
     software_template = Template(SOFTWARE_JINJA_MARKDOWN)
     software_template.globals['to_kebab_case'] = to_kebab_case  # 注入模板全局函数
     markdown_software = software_template.render(
@@ -569,7 +562,7 @@ def render_item_page(step, item_type, item, software_list):
                 item,
                 tags_relative_url=tags_relative_url,
                 platforms_relative_url=platforms_relative_url,
-                licenses_relative_url='../index.html#list-of-licenses'
+                licenses_relative_url='../index#list-of-licenses'
             )
         
         # 渲染相关软件
@@ -583,7 +576,7 @@ def render_item_page(step, item_type, item, software_list):
                 tags_relative_url=tags_relative_url,
                 platforms_relative_url=platforms_relative_url,
                 software_relative_url=software_relative_url,
-                licenses_relative_url='../index.html#list-of-licenses'
+                licenses_relative_url='../index#list-of-licenses'
             )
         
         # 组合完整页面
@@ -606,7 +599,7 @@ def render_item_page(step, item_type, item, software_list):
                     tags_relative_url=tags_relative_url,
                     platforms_relative_url=platforms_relative_url,
                     software_relative_url=software_relative_url,
-                    licenses_relative_url='../index.html#list-of-licenses'
+                    licenses_relative_url='../index#list-of-licenses'
                 )
         
         if markdown_software_list:
